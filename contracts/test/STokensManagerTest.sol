@@ -1,18 +1,12 @@
 pragma solidity 0.8.4;
-// pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
-// import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-// import {Counters} from "@openzeppelin/contracts/drafts/Counters.sol";
-// import {Strings} from "@openzeppelin/contracts/drafts/Strings.sol";
-// import {IAddressConfig} from "../../interface/IAddressConfig.sol";
-
-import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
 
-contract STokensManagerTest is ERC721EnumerableUpgradeable {
+contract STokensManagerTest is ERC721 {
 	using Counters for Counters.Counter;
 	using Strings for uint256;
 	Counters.Counter private _tokenIds;
@@ -28,16 +22,17 @@ contract STokensManagerTest is ERC721EnumerableUpgradeable {
 		uint256 pendingReward;
 	}
 
+	constructor() public ERC721("Dev Protocol sTokens V1", "DEV-STOKENS-V1") {}
+
 	modifier onlyLockup() {
-		require(
-			IAddressConfig(config).lockup() == _msgSender(),
-			"illegal access"
-		);
+		// require(
+		// 	IAddressConfig(config).lockup() == _msgSender(),
+		// 	"illegal access"
+		// );
 		_;
 	}
 
 	function initialize(address _config) external {
-		__ERC721_init("Dev Protocol sTokens V1", "DEV-STOKENS-V1");
 		config = _config;
 	}
 
@@ -47,7 +42,6 @@ contract STokensManagerTest is ERC721EnumerableUpgradeable {
 		override
 		returns (string memory)
 	{
-		// return _tokenId.fromUint256();
 		return _tokenId.toString();
 	}
 

@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+pragma solidity ^0.8.4;
+
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+
+import "hardhat/console.sol";
+
+contract STokensCertificate721 is
+	ERC721EnumerableUpgradeable,
+	OwnableUpgradeable
+{
+	function initialize() external initializer {
+		__ERC721_init("Dev Protocol sTokens certificate", "DEV-STOKENS-CERT");
+		__Ownable_init();
+	}
+
+	function mint(address to, uint256 tokenId) public onlyOwner {
+		_mint(to, tokenId);
+	}
+
+	function burn(uint256 tokenId) public onlyOwner {
+		_burn(tokenId);
+	}
+}
