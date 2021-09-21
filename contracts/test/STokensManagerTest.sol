@@ -1,4 +1,4 @@
-pragma solidity 0.8.4;
+pragma solidity =0.8.4;
 pragma experimental ABIEncoderV2;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -10,7 +10,6 @@ contract STokensManagerTest is ERC721 {
 	using Counters for Counters.Counter;
 	using Strings for uint256;
 	Counters.Counter private _tokenIds;
-	address public config;
 	uint256 public latestTokenId;
 	mapping(bytes32 => bytes) private bytesStorage;
 
@@ -24,33 +23,12 @@ contract STokensManagerTest is ERC721 {
 
 	constructor() public ERC721("Dev Protocol sTokens V1", "DEV-STOKENS-V1") {}
 
-	modifier onlyLockup() {
-		// require(
-		// 	IAddressConfig(config).lockup() == _msgSender(),
-		// 	"illegal access"
-		// );
-		_;
-	}
-
-	function initialize(address _config) external {
-		config = _config;
-	}
-
-	function tokenURI(uint256 _tokenId)
-		public
-		pure
-		override
-		returns (string memory)
-	{
-		return _tokenId.toString();
-	}
-
 	function mint(
 		address _owner,
 		address _property,
 		uint256 _amount,
 		uint256 _price
-	) external onlyLockup returns (uint256 tokenId_) {
+	) external returns (uint256 tokenId_) {
 		_tokenIds.increment();
 		uint256 newTokenId = _tokenIds.current();
 		_safeMint(_owner, newTokenId);
@@ -64,25 +42,6 @@ contract STokensManagerTest is ERC721 {
 		setStoragePositionsV1(newTokenId, newPosition);
 		latestTokenId = newTokenId;
 		return newTokenId;
-	}
-
-	function update(
-		uint256 _tokenId,
-		uint256 _amount,
-		uint256 _price,
-		uint256 _cumulativeReward,
-		uint256 _pendingReward
-	) external onlyLockup returns (bool) {
-		require(_exists(_tokenId), "not found");
-		StakingPositionV1 memory currentPosition = getStoragePositionsV1(
-			_tokenId
-		);
-		currentPosition.amount = _amount;
-		currentPosition.price = _price;
-		currentPosition.cumulativeReward = _cumulativeReward;
-		currentPosition.pendingReward = _pendingReward;
-		setStoragePositionsV1(_tokenId, currentPosition);
-		return true;
 	}
 
 	function positions(uint256 _tokenId)
