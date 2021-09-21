@@ -132,7 +132,7 @@ describe('STokensManager', () => {
 			it('other user cannot redeem', async () => {
 				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
 				await sTokensBridge.connect(user).depositSToken(tokenId, { gasLimit: 2400000 })
-				await expect(sTokensBridge.redeemSToken(tokenId, { gasLimit: 1200000 })).to.be.revertedWith('You do not have Cert721 token')
+				await expect(sTokensBridge.redeemSToken(tokenId, { gasLimit: 1200000 })).to.be.revertedWith('You do not have Certificate')
 			})
 			it('when user does not have sufficient Cert20 tokens', async () => {
 				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
