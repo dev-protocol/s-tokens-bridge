@@ -8,29 +8,29 @@ import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC7
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISTokensManager} from "@devprotocol/i-s-tokens/contracts/interface/ISTokensManager.sol";
 import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
-import {STokensCertificate20} from "./STokensCertificate20.sol";
-import {ISTokensCertificate20} from "./interface/ISTokensCertificate20.sol";
-import {STokensCertificate721} from "./STokensCertificate721.sol";
-import {ISTokensCertificate721} from "./interface/ISTokensCertificate721.sol";
+import {STokensSubstitute} from "./STokensSubstitute.sol";
+import {ISTokensSubstitute} from "./interface/ISTokensSubstitute.sol";
+import {STokensCertificate} from "./STokensCertificate.sol";
+import {ISTokensCertificate} from "./interface/ISTokensCertificate.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
 
 contract STokensBridge is Initializable, ReentrancyGuard {
 	address public sTokensAddress;
-	address public sTokensCertificate721Address;
+	address public sTokensCertificateAddress;
 
 	using Counters for Counters.Counter;
 	Counters.Counter private _tokenIds;
 
-	mapping(address => address) public sTokensCertificate20Address;
+	mapping(address => address) public sTokensSubstituteAddress;
 	mapping(address => mapping(uint256 => uint256)) public certificate721Id;
 
 	function initialize(address _sTokensAddress) external initializer {
 		sTokensAddress = _sTokensAddress;
-		STokensCertificate721 sTokensCertificate721 = new STokensCertificate721();
-		sTokensCertificate721Address = address(sTokensCertificate721);
-		sTokensCertificate721.initialize();
+		STokensCertificate sTokensCertificate = new STokensCertificate();
+		sTokensCertificateAddress = address(sTokensCertificate);
+		sTokensCertificate.initialize();
 	}
 
 	function depositSToken(uint256 _sTokenId) public nonReentrant {
@@ -46,22 +46,22 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 
 		_tokenIds.increment();
 		uint256 newTokenId = _tokenIds.current();
-		ISTokensCertificate721(sTokensCertificate721Address).mint(
+		ISTokensCertificate(sTokensCertificateAddress).mint(
 			msg.sender,
 			newTokenId
 		);
 		certificate721Id[msg.sender][_sTokenId] = newTokenId;
 
-		if (sTokensCertificate20Address[_property] == address(0)) {
-			STokensCertificate20 sTokensCertificate20 = new STokensCertificate20(
+		if (sTokensSubstituteAddress[_property] == address(0)) {
+			STokensSubstitute sTokensSubstitute = new STokensSubstitute(
 					"STokens Certificate20",
 					"CERT20"
 				);
-			sTokensCertificate20Address[_property] = address(
-				sTokensCertificate20
+			sTokensSubstituteAddress[_property] = address(
+				sTokensSubstitute
 			);
 		}
-		ISTokensCertificate20(sTokensCertificate20Address[_property]).mint(
+		ISTokensSubstitute(sTokensSubstituteAddress[_property]).mint(
 			msg.sender,
 			_amount
 		);
@@ -83,9 +83,9 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 			_sTokenId
 		);
 
-		ISTokensCertificate721(sTokensCertificate721Address).burn(_sTokenId);
+		ISTokensCertificate(sTokensCertificateAddress).burn(_sTokenId);
 		certificate721Id[msg.sender][_sTokenId] = 0;
-		ISTokensCertificate20(sTokensCertificate20Address[_property]).burn(
+		ISTokensSubstitute(sTokensSubstituteAddress[_property]).burn(
 			msg.sender,
 			_amount
 		);

@@ -7,7 +7,7 @@ import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/t
 
 import "hardhat/console.sol";
 
-contract STokensCertificate721 is
+contract STokensCertificate is
 	ERC721EnumerableUpgradeable,
 	OwnableUpgradeable
 {
