@@ -20,7 +20,11 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 	address public sTokensAddress;
 	address public sTokensCertificate721Address;
 
+	using Counters for Counters.Counter;
+	Counters.Counter private _tokenIds;
+
 	mapping(address => address) public sTokensCertificate20Address;
+	mapping(address => mapping(uint256 => uint256)) public certificate721Id;
 
 	function initialize(address _sTokensAddress) external initializer {
 		sTokensAddress = _sTokensAddress;
@@ -40,10 +44,13 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 			_sTokenId
 		);
 
+		_tokenIds.increment();
+		uint256 newTokenId = _tokenIds.current();
 		ISTokensCertificate721(sTokensCertificate721Address).mint(
 			msg.sender,
-			_sTokenId
+			newTokenId
 		);
+		certificate721Id[msg.sender][_sTokenId] = newTokenId;
 
 		if (sTokensCertificate20Address[_property] == address(0)) {
 			STokensCertificate20 sTokensCertificate20 = new STokensCertificate20(
@@ -62,9 +69,7 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 
 	function redeemSToken(uint256 _sTokenId) public payable nonReentrant {
 		require(
-			IERC721Upgradeable(sTokensCertificate721Address).ownerOf(
-				_sTokenId
-			) == msg.sender,
+			certificate721Id[msg.sender][_sTokenId] != 0,
 			"You do not have Cert721 token"
 		);
 
@@ -79,6 +84,7 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 		);
 
 		ISTokensCertificate721(sTokensCertificate721Address).burn(_sTokenId);
+		certificate721Id[msg.sender][_sTokenId] = 0;
 		ISTokensCertificate20(sTokensCertificate20Address[_property]).burn(
 			msg.sender,
 			_amount
