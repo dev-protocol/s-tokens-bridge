@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISTokensManager} from "@devprotocol/i-s-tokens/contracts/interface/ISTokensManager.sol";
 import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
 import {STokensCertificate20} from "./STokensCertificate20.sol";
 import {ISTokensCertificate20} from "./interface/ISTokensCertificate20.sol";
 import {STokensCertificate721} from "./STokensCertificate721.sol";
 import {ISTokensCertificate721} from "./interface/ISTokensCertificate721.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
 
