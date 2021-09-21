@@ -53,10 +53,7 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 		certificate721Id[msg.sender][_sTokenId] = newTokenId;
 
 		if (sTokensSubstituteAddress[_property] == address(0)) {
-			STokensSubstitute sTokensSubstitute = new STokensSubstitute(
-					"STokens Certificate20",
-					"CERT20"
-				);
+			STokensSubstitute sTokensSubstitute = new STokensSubstitute();
 			sTokensSubstituteAddress[_property] = address(
 				sTokensSubstitute
 			);

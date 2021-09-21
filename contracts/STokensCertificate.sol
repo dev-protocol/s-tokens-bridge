@@ -12,7 +12,7 @@ contract STokensCertificate is
 	OwnableUpgradeable
 {
 	function initialize() external initializer {
-		__ERC721_init("Dev Protocol sTokens certificate", "DEV-STOKENS-CERT");
+		__ERC721_init("sTokens Certificate V1", "STOKENS-CERTIFICATE-V1");
 		__Ownable_init();
 	}
 

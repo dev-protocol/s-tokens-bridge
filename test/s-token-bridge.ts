@@ -59,14 +59,14 @@ describe('STokensManager', () => {
 		it('get token name', async () => {
 			const [, , sTokensCertificate] = await init()
 			const name = await sTokensCertificate.name()
-			expect(name).to.equal('Dev Protocol sTokens certificate')
+			expect(name).to.equal('sTokens Certificate V1')
 		})
 	})
 	describe('symbol', () => {
 		it('get token symbol', async () => {
 			const [, , sTokensCertificate] = await init()
 			const symbol = await sTokensCertificate.symbol()
-			expect(symbol).to.equal('DEV-STOKENS-CERT')
+			expect(symbol).to.equal('STOKENS-CERTIFICATE-V1')
 		})
 	})
 
@@ -84,6 +84,12 @@ describe('STokensManager', () => {
 				// check user got Cert20 
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
 				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
+				// check name and symbol of SubstituteToken
+				const name = await sTokensSubstitute.name()
+				expect(name).to.equal('sTokens Substitute V1')
+				const symbol = await sTokensSubstitute.symbol()
+				expect(symbol).to.equal('STOKENS-SUBSTITUTE-V1')
+				// check amount
 				let amount = await sTokensSubstitute.balanceOf(user.address)
 				expect(amount).to.equal(mintParam.amount)
 			})
