@@ -81,9 +81,9 @@ describe('STokensManager', () => {
 				expect(sTokenOwner).to.equal(sTokensBridge.address)
 				// check user got Cert721 
 				let certificateId = await sTokensBridge.sTokensCertificateId(user.address, sTokenId)
-				expect(certificateId).to.equal(1)// 
+				expect(certificateId).to.equal(1)
 				let certOwner = await sTokensCertificate.ownerOf(certificateId)
-				expect(certOwner).to.equal(user.address)// 
+				expect(certOwner).to.equal(user.address) 
 				// check user got Cert20 
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
 				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
@@ -136,9 +136,9 @@ describe('STokensManager', () => {
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				// check certId is correct
 				let certificateId = await sTokensBridge.sTokensCertificateId(user.address, sTokenId)
-				expect(certificateId).to.equal(2)// 
+				expect(certificateId).to.equal(2)
 				let certOwner = await sTokensCertificate.ownerOf(certificateId)
-				expect(certOwner).to.equal(user.address)// 
+				expect(certOwner).to.equal(user.address)
 				// check certId=2 is correctly burned
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
 			})
