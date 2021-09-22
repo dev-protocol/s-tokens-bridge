@@ -19,7 +19,7 @@ contract STokensCertificate is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 	function mint(address to, uint256 _tokenId) public onlyOwner {
 		tokenId += 1;
 		uint256 newTokenId = tokenId;
-		_mint(to, _tokenId);
+		_mint(to, newTokenId);
 		sTokensCertificateId[to][_tokenId] = newTokenId;
 	}
 

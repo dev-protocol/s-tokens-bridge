@@ -18,11 +18,12 @@ import { HARDHAT_ERROR } from './const'
 import { checkTokenUri } from './token-uri-test'
 import { STokensBridge } from '../typechain'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { messagePrefix } from '@ethersproject/hash'
 
 use(solidity)
 
 describe('STokensManager', () => {
-	const init = async (): Promise<[Contract, Contract, Contract, SignerWithAddress, any, number]> => {
+	const init = async (): Promise<[Contract, Contract, Contract, SignerWithAddress, any, any]> => {
 		const [, user] = await ethers.getSigners()
 		const sTokensManager = await deploy('STokensManagerTest')
 		const mintParam = createMintParams()
@@ -37,13 +38,13 @@ describe('STokensManager', () => {
 		)
 		const filter = sTokensManager.filters.Transfer()
 		const events = await sTokensManager.queryFilter(filter)
-		const tokenId = events[0].args!.tokenId.toString()
+		const sTokenId = events[0].args!.tokenId.toString()
 		const sTokensBridge = await deploy('STokensBridge')
 		await sTokensBridge.initialize(sTokensManager.address)
 		await sTokensManager.connect(user).setApprovalForAll(sTokensBridge.address, true, { gasLimit: 1200000 })
 		const sTokensCertificateAddress = await sTokensBridge.sTokensCertificateAddress()
 		const sTokensCertificate = await attach('STokensCertificate', sTokensCertificateAddress)
-		return [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId]
+		return [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId]
 	}
 
 	describe('initialize', () => {
@@ -73,13 +74,15 @@ describe('STokensManager', () => {
 	describe('depositSToken', () => {
 		describe('success', () => {
 			it('deposit SToken', async () => {
-				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
-				await sTokensBridge.connect(user).depositSToken(tokenId, { gasLimit: 2400000 })
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
+				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				// check SToken was transfered to Bridge
-				let sTokenOwner = await sTokensManager.ownerOf(tokenId)
+				let sTokenOwner = await sTokensManager.ownerOf(sTokenId)
 				expect(sTokenOwner).to.equal(sTokensBridge.address)
 				// check user got Cert721 
-				let certOwner = await sTokensCertificate.ownerOf(tokenId)
+				let certId = await sTokensCertificate.sTokensCertificateId(user.address, sTokenId)
+				expect(certId).to.equal(1)
+				let certOwner = await sTokensCertificate.ownerOf(certId)
 				expect(certOwner).to.equal(user.address)// 
 				// check user got Cert20 
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
@@ -96,14 +99,14 @@ describe('STokensManager', () => {
 		})
 		describe('fail', () => {
 			it('other user cannot deposit', async () => {
-				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
-				await expect(sTokensBridge.depositSToken(tokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC721: transfer of token that is not own')
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
+				await expect(sTokensBridge.depositSToken(sTokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC721: transfer of token that is not own')
 			})
 			it('when user does not have SToken', async () => {
-				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
 				const [owner,] = await ethers.getSigners()
-				await sTokensManager.connect(user).transferFrom(user.address, owner.address, tokenId, { gasLimit: 1200000 })
-				await expect(sTokensBridge.depositSToken(tokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC721: transfer caller is not owner nor approved')
+				await sTokensManager.connect(user).transferFrom(user.address, owner.address, sTokenId, { gasLimit: 1200000 })
+				await expect(sTokensBridge.depositSToken(sTokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC721: transfer caller is not owner nor approved')
 			})
 		})
 	})
@@ -111,37 +114,51 @@ describe('STokensManager', () => {
 	describe('redeemSToken', () => {
 		describe('success', () => {
 			it('redeem SToken', async () => {
-				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
 
-				await sTokensBridge.connect(user).depositSToken(tokenId, { gasLimit: 2400000 })
+				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
 				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
-				await sTokensBridge.connect(user).redeemSToken(tokenId, { gasLimit: 1200000 })
+				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
 				// check user got SToken 
-				let sTokenOwner = await sTokensManager.ownerOf(tokenId)
+				let sTokenOwner = await sTokensManager.ownerOf(sTokenId)
 				expect(sTokenOwner).to.equal(user.address)
 				// check Cert721 was burned
-				await expect(sTokensCertificate.ownerOf(tokenId)).to.be.revertedWith('ERC721: owner query for nonexistent token')
+				await expect(sTokensCertificate.ownerOf(sTokenId)).to.be.revertedWith('ERC721: owner query for nonexistent token')
 				// check Cert20 was burned
 				let amount = await sTokensSubstitute.balanceOf(user.address)
 				expect(amount).to.equal(0)
+			})
+			it('redeem SToken then deposits again', async () => {
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
+
+				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
+				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
+				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
+				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
+				// check certId is correct
+				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
+				let certId = await sTokensCertificate.sTokensCertificateId(user.address, sTokenId)
+				expect(certId).to.equal(2)
+				let certOwner = await sTokensCertificate.ownerOf(certId)
+				expect(certOwner).to.equal(user.address)// 
 			})
 		})
 
 		describe('fail', () => {
 			it('other user cannot redeem', async () => {
-				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
-				await sTokensBridge.connect(user).depositSToken(tokenId, { gasLimit: 2400000 })
-				await expect(sTokensBridge.redeemSToken(tokenId, { gasLimit: 1200000 })).to.be.revertedWith('You do not have Certificate')
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
+				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
+				await expect(sTokensBridge.redeemSToken(sTokenId, { gasLimit: 1200000 })).to.be.revertedWith('You do not have Certificate')
 			})
 			it('when user does not have sufficient Cert20 tokens', async () => {
-				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, tokenId] = await init()
+				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
 				const [owner,] = await ethers.getSigners()
-				await sTokensBridge.connect(user).depositSToken(tokenId, { gasLimit: 2400000 })
+				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
 				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
 				await sTokensSubstitute.connect(user).transfer(owner.address, 1)
-				await expect(sTokensBridge.connect(user).redeemSToken(tokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC20: burn amount exceeds balance')
+				await expect(sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC20: burn amount exceeds balance')
 			})
 		})
 	})
