@@ -7,9 +7,6 @@ import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/t
 import "hardhat/console.sol";
 
 contract STokensCertificate is ERC721EnumerableUpgradeable, OwnableUpgradeable {
-	uint256 public tokenId;
-
-	mapping(address => mapping(uint256 => uint256)) public sTokensCertificateId;
 
 	function initialize() external initializer {
 		__ERC721_init("sTokens Certificate V1", "STOKENS-CERTIFICATE-V1");
@@ -17,18 +14,10 @@ contract STokensCertificate is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 	}
 
 	function mint(address to, uint256 _tokenId) public onlyOwner {
-		tokenId += 1;
-		uint256 newTokenId = tokenId;
-		_mint(to, newTokenId);
-		sTokensCertificateId[to][_tokenId] = newTokenId;
+		_mint(to, _tokenId);
 	}
 
-	function burn(address account, uint256 _tokenId) public onlyOwner {
-		require(
-			sTokensCertificateId[account][_tokenId] != 0,
-			"You do not have Certificate"
-		);
+	function burn(uint256 _tokenId) public onlyOwner {
 		_burn(_tokenId);
-		sTokensCertificateId[account][_tokenId] = 0;
 	}
 }

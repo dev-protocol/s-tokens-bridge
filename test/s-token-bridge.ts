@@ -80,9 +80,9 @@ describe('STokensManager', () => {
 				let sTokenOwner = await sTokensManager.ownerOf(sTokenId)
 				expect(sTokenOwner).to.equal(sTokensBridge.address)
 				// check user got Cert721 
-				let certId = await sTokensCertificate.sTokensCertificateId(user.address, sTokenId)
-				expect(certId).to.equal(1)
-				let certOwner = await sTokensCertificate.ownerOf(certId)
+				let certificateId = await sTokensBridge.sTokensCertificateId(user.address, sTokenId)
+				expect(certificateId).to.equal(1)// 
+				let certOwner = await sTokensCertificate.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)// 
 				// check user got Cert20 
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
@@ -131,16 +131,13 @@ describe('STokensManager', () => {
 			})
 			it('redeem SToken then deposits again', async () => {
 				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
-
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
-				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
-				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
-				// check certId is correct
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
-				let certId = await sTokensCertificate.sTokensCertificateId(user.address, sTokenId)
-				expect(certId).to.equal(2)
-				let certOwner = await sTokensCertificate.ownerOf(certId)
+				// check certId is correct
+				let certificateId = await sTokensBridge.sTokensCertificateId(user.address, sTokenId)
+				expect(certificateId).to.equal(2)// 
+				let certOwner = await sTokensCertificate.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)// 
 			})
 		})
