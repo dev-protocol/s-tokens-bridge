@@ -129,7 +129,7 @@ describe('STokensManager', () => {
 				let amount = await sTokensSubstitute.balanceOf(user.address)
 				expect(amount).to.equal(0)
 			})
-			it('redeem SToken then deposits again', async () => {
+			it('redeem SToken then deposit and redeem again', async () => {
 				const [sTokensManager, sTokensBridge, sTokensCertificate, user, mintParam, sTokenId] = await init()
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
@@ -139,6 +139,8 @@ describe('STokensManager', () => {
 				expect(certificateId).to.equal(2)// 
 				let certOwner = await sTokensCertificate.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)// 
+				// check certId=2 is correctly burned
+				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
 			})
 		})
 

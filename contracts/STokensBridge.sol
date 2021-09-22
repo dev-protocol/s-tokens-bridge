@@ -18,7 +18,7 @@ import "hardhat/console.sol";
 contract STokensBridge is Initializable, ReentrancyGuard {
 	address public sTokensAddress;
 	address public sTokensCertificateAddress;
-	uint256 public certificateId;
+	uint256 public certificateIdCounter;
 	mapping(address => mapping(uint256 => uint256)) public sTokensCertificateId;
 
 	mapping(address => address) public sTokensSubstituteAddress;
@@ -41,18 +41,16 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 			_sTokenId
 		);
 
-		certificateId += 1;
+		certificateIdCounter += 1;
 		ISTokensCertificate(sTokensCertificateAddress).mint(
 			msg.sender,
-			certificateId
+			certificateIdCounter
 		);
-		sTokensCertificateId[msg.sender][_sTokenId] = certificateId;
+		sTokensCertificateId[msg.sender][_sTokenId] = certificateIdCounter;
 
 		if (sTokensSubstituteAddress[_property] == address(0)) {
 			STokensSubstitute sTokensSubstitute = new STokensSubstitute();
-			sTokensSubstituteAddress[_property] = address(
-				sTokensSubstitute
-			);
+			sTokensSubstituteAddress[_property] = address(sTokensSubstitute);
 		}
 		ISTokensSubstitute(sTokensSubstituteAddress[_property]).mint(
 			msg.sender,
@@ -61,11 +59,11 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 	}
 
 	function redeemSToken(uint256 _sTokenId) public payable nonReentrant {
-		require(
-			sTokensCertificateId[msg.sender][_sTokenId] != 0,
-			"You do not have Certificate"
-		);
-		ISTokensCertificate(sTokensCertificateAddress).burn(_sTokenId);
+		uint256 certificateId = sTokensCertificateId[msg.sender][
+			_sTokenId
+		];
+		require(certificateId != 0, "You do not have Certificate");
+		ISTokensCertificate(sTokensCertificateAddress).burn(certificateId);
 		sTokensCertificateId[msg.sender][_sTokenId] = 0;
 
 		IERC721Upgradeable(sTokensAddress).transferFrom(
