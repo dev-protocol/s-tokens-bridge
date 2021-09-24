@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity =0.8.4;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISTokensManager} from "@devprotocol/i-s-tokens/contracts/interface/ISTokensManager.sol";
@@ -14,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 import "hardhat/console.sol";
 
-contract STokensBridge is Initializable, ReentrancyGuard {
+contract STokensBridge is Initializable {
 	address public sTokensAddress;
 	address public sTokensCertificateAddress;
 	uint256 public certificateIdCounter;
@@ -29,7 +28,7 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 		sTokensCertificate.initialize();
 	}
 
-	function depositSToken(uint256 _sTokenId) public nonReentrant {
+	function depositSToken(uint256 _sTokenId) public {
 		(address _property, uint256 _amount, , , ) = ISTokensManager(
 			sTokensAddress
 		).positions(_sTokenId);
@@ -57,7 +56,7 @@ contract STokensBridge is Initializable, ReentrancyGuard {
 		);
 	}
 
-	function redeemSToken(uint256 _sTokenId) public payable nonReentrant {
+	function redeemSToken(uint256 _sTokenId) public {
 		uint256 certificateId = sTokensCertificateId[msg.sender][
 			_sTokenId
 		];
