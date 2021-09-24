@@ -17,9 +17,12 @@ contract STokensBridge is Initializable {
 	address public sTokensAddress;
 	address public sTokensCertificateAddress;
 	uint256 public certificateIdCounter;
-	mapping(address => mapping(uint256 => uint256)) public sTokensCertificateId;
 
+	mapping(address => mapping(uint256 => uint256)) public sTokensCertificateId;
 	mapping(address => address) public sTokensSubstituteAddress;
+
+	event Deposit(address indexed _from, uint256 _sTokenId, uint256 _certificateId);
+	event Redeem(address indexed _from, uint256 _sTokenId, uint256 _certificateId);
 
 	function initialize(address _sTokensAddress) external initializer {
 		sTokensAddress = _sTokensAddress;
@@ -54,12 +57,11 @@ contract STokensBridge is Initializable {
 			msg.sender,
 			_amount
 		);
+		emit Deposit(msg.sender, _sTokenId, certificateIdCounter);
 	}
 
 	function redeemSToken(uint256 _sTokenId) public {
-		uint256 certificateId = sTokensCertificateId[msg.sender][
-			_sTokenId
-		];
+		uint256 certificateId = sTokensCertificateId[msg.sender][_sTokenId];
 		require(certificateId != 0, "You do not have Certificate");
 		ISTokensCertificate(sTokensCertificateAddress).burn(certificateId);
 		sTokensCertificateId[msg.sender][_sTokenId] = 0;
@@ -78,5 +80,6 @@ contract STokensBridge is Initializable {
 			msg.sender,
 			_amount
 		);
+		emit Redeem(msg.sender, _sTokenId, certificateId);
 	}
 }

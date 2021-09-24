@@ -79,9 +79,16 @@ describe('STokensManager', () => {
 				// check SToken was transfered to Bridge
 				let sTokenOwner = await sTokensManager.ownerOf(sTokenId)
 				expect(sTokenOwner).to.equal(sTokensBridge.address)
-				// check user got Cert721 
-				let certificateId = await sTokensBridge.sTokensCertificateId(user.address, sTokenId)
-				expect(certificateId).to.equal(1)
+				// check Deposit event
+				const filter = sTokensBridge.filters.Deposit()
+				const events = await sTokensBridge.queryFilter(filter)
+				const from = events[0].args!._from
+				const eventsSTokenId = events[0].args!._sTokenId
+				const certificateId = events[0].args!._certificateId
+				expect(from).to.equal(user.address) 
+				expect(eventsSTokenId).to.equal(sTokenId) 
+				expect(certificateId).to.equal(1) 
+				// check user got Cert721
 				let certOwner = await sTokensCertificate.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address) 
 				// check user got Cert20 
@@ -120,6 +127,15 @@ describe('STokensManager', () => {
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
 				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
+				// check Redeem event
+				const filter = sTokensBridge.filters.Redeem()
+				const events = await sTokensBridge.queryFilter(filter)
+				const from = events[0].args!._from
+				const eventsSTokenId = events[0].args!._sTokenId
+				const certificateId = events[0].args!._certificateId
+				expect(from).to.equal(user.address) 
+				expect(eventsSTokenId).to.equal(sTokenId) 
+				expect(certificateId).to.equal(1) 
 				// check user got SToken 
 				let sTokenOwner = await sTokensManager.ownerOf(sTokenId)
 				expect(sTokenOwner).to.equal(user.address)
@@ -134,13 +150,16 @@ describe('STokensManager', () => {
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
-				// check certId is correct
-				let certificateId = await sTokensBridge.sTokensCertificateId(user.address, sTokenId)
-				expect(certificateId).to.equal(2)
+				// check certId of 2nd Deposit is correct
+				const filter = sTokensBridge.filters.Deposit()
+				const events = await sTokensBridge.queryFilter(filter)
+				const certificateId = events[1].args!._certificateId
+				expect(certificateId).to.equal(2) 
 				let certOwner = await sTokensCertificate.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)
 				// check certId=2 is correctly burned
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
+				await expect(sTokensCertificate.ownerOf(sTokenId)).to.be.revertedWith('ERC721: owner query for nonexistent token')
 			})
 		})
 
