@@ -9,6 +9,8 @@ import {STokensSubstitute} from "./STokensSubstitute.sol";
 import {ISTokensSubstitute} from "./interface/ISTokensSubstitute.sol";
 import {STokensCertificate} from "./STokensCertificate.sol";
 import {ISTokensCertificate} from "./interface/ISTokensCertificate.sol";
+import {STokensBridgeProxy} from "./STokensBridgeProxy.sol";
+import {STokensBridgeProxyAdmin} from "./STokensBridgeProxyAdmin.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
@@ -16,19 +18,35 @@ import "hardhat/console.sol";
 contract STokensBridge is Initializable {
 	address public sTokensAddress;
 	address public sTokensCertificateAddress;
+	address public sTokensCertificateProxyAddress;
 	uint256 public certificateIdCounter;
 
 	mapping(address => mapping(uint256 => uint256)) public sTokensCertificateId;
 	mapping(address => address) public sTokensSubstituteAddress;
 
-	event Deposit(address indexed _from, uint256 _sTokenId, uint256 _certificateId);
-	event Redeem(address indexed _from, uint256 _sTokenId, uint256 _certificateId);
+	event Deposit(
+		address indexed _from,
+		uint256 _sTokenId,
+		uint256 _certificateId
+	);
+	event Redeem(
+		address indexed _from,
+		uint256 _sTokenId,
+		uint256 _certificateId
+	);
 
 	function initialize(address _sTokensAddress) external initializer {
 		sTokensAddress = _sTokensAddress;
+		STokensBridgeProxyAdmin admin = new STokensBridgeProxyAdmin();
 		STokensCertificate sTokensCertificate = new STokensCertificate();
 		sTokensCertificateAddress = address(sTokensCertificate);
-		sTokensCertificate.initialize();
+		STokensBridgeProxy proxy = new STokensBridgeProxy(
+			sTokensCertificateAddress,
+			address(admin),
+			""
+		);
+		sTokensCertificateProxyAddress = address(proxy);
+		STokensCertificate(sTokensCertificateProxyAddress).initialize();
 	}
 
 	function depositSToken(uint256 _sTokenId) public {
@@ -43,7 +61,7 @@ contract STokensBridge is Initializable {
 		);
 
 		certificateIdCounter += 1;
-		ISTokensCertificate(sTokensCertificateAddress).mint(
+		ISTokensCertificate(sTokensCertificateProxyAddress).mint(
 			msg.sender,
 			certificateIdCounter
 		);
@@ -63,7 +81,7 @@ contract STokensBridge is Initializable {
 	function redeemSToken(uint256 _sTokenId) public {
 		uint256 certificateId = sTokensCertificateId[msg.sender][_sTokenId];
 		require(certificateId != 0, "You do not have Certificate");
-		ISTokensCertificate(sTokensCertificateAddress).burn(certificateId);
+		ISTokensCertificate(sTokensCertificateProxyAddress).burn(certificateId);
 		sTokensCertificateId[msg.sender][_sTokenId] = 0;
 
 		IERC721Upgradeable(sTokensAddress).transferFrom(
