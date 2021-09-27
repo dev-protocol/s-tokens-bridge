@@ -2,11 +2,11 @@
 pragma solidity =0.8.4;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 import "hardhat/console.sol";
 
-contract STokensCertificate is ERC721EnumerableUpgradeable, OwnableUpgradeable {
+contract STokensCertificate is ERC721Upgradeable, OwnableUpgradeable {
 
 	function initialize() external initializer {
 		__ERC721_init("sTokens Certificate V1", "STOKENS-CERTIFICATE-V1");
