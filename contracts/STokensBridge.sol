@@ -7,10 +7,7 @@ import {ISTokensManager} from "@devprotocol/i-s-tokens/contracts/interface/ISTok
 import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
 import {STokensSubstitute} from "./STokensSubstitute.sol";
 import {ISTokensSubstitute} from "./interface/ISTokensSubstitute.sol";
-import {STokensCertificate} from "./STokensCertificate.sol";
 import {ISTokensCertificate} from "./interface/ISTokensCertificate.sol";
-import {STokensBridgeProxy} from "./STokensBridgeProxy.sol";
-import {STokensBridgeProxyAdmin} from "./STokensBridgeProxyAdmin.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import "hardhat/console.sol";
@@ -35,18 +32,10 @@ contract STokensBridge is Initializable {
 		uint256 _certificateId
 	);
 
-	function initialize(address _sTokensAddress) external initializer {
+	function initialize(address _sTokensAddress, address _sTokensCertificateProxyAddress) external initializer {
 		sTokensAddress = _sTokensAddress;
-		STokensBridgeProxyAdmin admin = new STokensBridgeProxyAdmin();
-		STokensCertificate sTokensCertificate = new STokensCertificate();
-		sTokensCertificateAddress = address(sTokensCertificate);
-		STokensBridgeProxy proxy = new STokensBridgeProxy(
-			sTokensCertificateAddress,
-			address(admin),
-			""
-		);
-		sTokensCertificateProxyAddress = address(proxy);
-		STokensCertificate(sTokensCertificateProxyAddress).initialize();
+		sTokensCertificateProxyAddress = _sTokensCertificateProxyAddress;
+		ISTokensCertificate(sTokensCertificateProxyAddress).initialize();
 	}
 
 	function depositSToken(uint256 _sTokenId) public {

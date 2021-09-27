@@ -34,10 +34,22 @@ describe('STokensBridgeProxy', () => {
 		const events = await sTokensManager.queryFilter(filter)
 		const sTokenId = events[0].args!.tokenId.toString()
 
-		const sTokensBridge = await deploy('STokensBridge')
+		const sTokensCertificate = await deploy('STokensCertificate')
 		const data = ethers.utils.arrayify('0x')
 		const proxyAdmin = await deploy('ProxyAdmin')
-		const proxy = await deployWith3Arg(
+		let proxy = await deployWith3Arg(
+			'TransparentUpgradeableProxy',
+			sTokensCertificate.address,
+			proxyAdmin.address,
+			data
+		)
+		const sTokensCertificateFactory = await ethers.getContractFactory(
+			'STokensCertificate'
+		)
+		const sTokensCertificateProxy = sTokensCertificateFactory.attach(proxy.address)
+
+		const sTokensBridge = await deploy('STokensBridge')
+		proxy = await deployWith3Arg(
 			'TransparentUpgradeableProxy',
 			sTokensBridge.address,
 			proxyAdmin.address,
@@ -47,7 +59,7 @@ describe('STokensBridgeProxy', () => {
 			'STokensBridge'
 		)
 		const proxyDelegate = sTokensBridgeFactory.attach(proxy.address)
-		await proxyDelegate.initialize(sTokensManager.address)
+		await proxyDelegate.initialize(sTokensManager.address, sTokensCertificateProxy.address)
 		await sTokensManager.connect(user).setApprovalForAll(proxyDelegate.address, true, { gasLimit: 1200000 })
 
 		return [
