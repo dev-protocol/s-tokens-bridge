@@ -95,13 +95,13 @@ describe('STokensBridgeProxy', () => {
 			it('The data is stored in the proxy(STokensBridge)', async () => {
 				const [proxy, proxyDelegate, , proxyAdmin] = await init()
 				const sTokensAddress = await proxyDelegate.sTokensAddress()
-				const sTokensCertificateAddress = await proxyDelegate.sTokensCertificateAddress()
+				const sTokensCertificateProxyAddress = await proxyDelegate.sTokensCertificateProxyAddress()
 				const sTokensBridgeSecond = await deploy('STokensBridge')
 				await proxyAdmin.upgrade(proxy.address, sTokensBridgeSecond.address)
 				const sTokensAddressSecond = await proxyDelegate.sTokensAddress()
-				const sTokensCertificateAddressSecond = await proxyDelegate.sTokensCertificateAddress()
+				const sTokensCertificateProxyAddressSecond = await proxyDelegate.sTokensCertificateProxyAddress()
 				expect(sTokensAddressSecond).to.equal(sTokensAddress)
-				expect(sTokensCertificateAddressSecond).to.equal(sTokensCertificateAddress)
+				expect(sTokensCertificateProxyAddressSecond).to.equal(sTokensCertificateProxyAddress)
 			})
 
 			it('The data is stored in the proxy(ERC721Upgradeable)', async () => {

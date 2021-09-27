@@ -14,7 +14,6 @@ import "hardhat/console.sol";
 
 contract STokensBridge is Initializable {
 	address public sTokensAddress;
-	address public sTokensCertificateAddress;
 	address public sTokensCertificateProxyAddress;
 	uint256 public certificateIdCounter;
 
