@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity =0.8.4;
 pragma experimental ABIEncoderV2;
 
@@ -21,7 +22,7 @@ contract STokensManagerTest is ERC721 {
 		uint256 pendingReward;
 	}
 
-	constructor() public ERC721("Dev Protocol sTokens V1", "DEV-STOKENS-V1") {}
+	constructor() ERC721("Dev Protocol sTokens V1", "DEV-STOKENS-V1") {}
 
 	function mint(
 		address _owner,
