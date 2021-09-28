@@ -23,14 +23,14 @@ describe('STokensSubstitute', () => {
 
 	describe('name', () => {
 		it('get token name', async () => {
-			const [sTokensSubstitute, user] = await init()
+			const [sTokensSubstitute] = await init()
 			const name = await sTokensSubstitute.name()
 			expect(name).to.equal('sTokens Substitute V1')
 		})
 	})
 	describe('symbol', () => {
 		it('get token symbol', async () => {
-			const [sTokensSubstitute, user] = await init()
+			const [sTokensSubstitute] = await init()
 			const symbol = await sTokensSubstitute.symbol()
 			expect(symbol).to.equal('STOKENS-SUBSTITUTE-V1')
 		})

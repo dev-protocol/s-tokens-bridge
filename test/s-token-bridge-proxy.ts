@@ -80,7 +80,7 @@ describe('STokensBridgeProxy', () => {
 	describe('upgradeTo', () => {
 		describe('success', () => {
 			it('upgrade logic contract', async () => {
-				const [proxy, proxyDelegate, , proxyAdmin, user, mintParam, sTokenId] = await init()
+				const [proxy, proxyDelegate, , proxyAdmin, user, , sTokenId] = await init()
 				await proxyDelegate.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				let certificateId = await proxyDelegate.sTokensCertificateId(user.address, sTokenId)
 				expect(certificateId).to.equal(1)

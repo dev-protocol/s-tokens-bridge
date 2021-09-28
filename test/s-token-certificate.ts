@@ -24,7 +24,7 @@ describe('STokensCertificate', () => {
 
 	describe('initialize', () => {
 		it('The initialize function can only be executed once.', async () => {
-			const [sTokensCertificate, user] = await init()
+			const [sTokensCertificate] = await init()
 			await expect(
 				sTokensCertificate.initialize()
 			).to.be.revertedWith('Initializable: contract is already initialized')
@@ -33,14 +33,14 @@ describe('STokensCertificate', () => {
 
 	describe('name', () => {
 		it('get token name', async () => {
-			const [sTokensCertificate, user] = await init()
+			const [sTokensCertificate] = await init()
 			const name = await sTokensCertificate.name()
 			expect(name).to.equal('sTokens Certificate V1')
 		})
 	})
 	describe('symbol', () => {
 		it('get token symbol', async () => {
-			const [sTokensCertificate, user] = await init()
+			const [sTokensCertificate] = await init()
 			const symbol = await sTokensCertificate.symbol()
 			expect(symbol).to.equal('STOKENS-CERTIFICATE-V1')
 		})
