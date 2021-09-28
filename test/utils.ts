@@ -74,7 +74,6 @@ export const createUpdateParams = (tokenId = 1): any => ({
 
 export const attach = async (name: string, addr: string): Promise<Contract> => {
 	const factoryStrage = await ethers.getContractFactory(name)
-	const contract = await factoryStrage.attach(addr)
-	await contract.deployed()
+	const contract = factoryStrage.attach(addr)
 	return contract
 }
