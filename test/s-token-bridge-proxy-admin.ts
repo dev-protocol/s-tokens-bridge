@@ -2,26 +2,45 @@ import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
 import { Contract, constants } from 'ethers'
 import { solidity } from 'ethereum-waffle'
-import { deploy, deployWithArg, deployWith3Arg } from './utils'
+import { deploy, deployWith3Arg } from './utils'
+import { STokensBridge } from '../typechain/STokensBridge'
+import { STokensBridgeProxy } from '../typechain/STokensBridgeProxy'
+import { STokensBridgeProxyAdmin } from '../typechain/STokensBridgeProxyAdmin'
+import { STokensManagerTest } from '../typechain/STokensManagerTest'
+import { STokensCertificate } from '../typechain/STokensCertificate'
+import { ProxyAdmin } from '../typechain/ProxyAdmin'
 
 use(solidity)
 
 describe('STokensBridgeProxyAdmin', () => {
 	const init = async (): Promise<[Contract, Contract, Contract]> => {
-		const sTokensBridge = await deploy('STokensBridge')
+		const sTokensManager = await deploy('STokensManagerTest') as STokensManagerTest
+		const sTokensCertificate = await deploy('STokensCertificate') as STokensCertificate
 		const data = ethers.utils.arrayify('0x')
-		const proxyAdmin = await deploy('STokensBridgeProxyAdmin')
-		const proxy = await deployWith3Arg(
+		const proxyAdmin = await deploy('ProxyAdmin') as ProxyAdmin
+		let proxy = await deployWith3Arg(
+			'STokensBridgeProxy',
+			sTokensCertificate.address,
+			proxyAdmin.address,
+			data
+		) as STokensBridgeProxy
+		const sTokensCertificateFactory = await ethers.getContractFactory(
+			'STokensCertificate'
+		)
+		const sTokensCertificateProxy = sTokensCertificateFactory.attach(proxy.address) as STokensCertificate
+
+		const sTokensBridge = await deploy('STokensBridge') as STokensBridge
+		proxy = await deployWith3Arg(
 			'STokensBridgeProxy',
 			sTokensBridge.address,
 			proxyAdmin.address,
 			data
-		)
+		) as STokensBridgeProxy
 		const sTokensBridgeFactory = await ethers.getContractFactory(
 			'STokensBridge'
 		)
-		// const proxyDelegate = sTokensBridgeFactory.attach(proxy.address)
-		// await proxyDelegate.initialize(addressConfig.address)
+		const proxyDelegate = sTokensBridgeFactory.attach(proxy.address) as STokensBridge
+		await proxyDelegate.initialize(sTokensManager.address, sTokensCertificateProxy.address)
 
 		return [proxy, sTokensBridge, proxyAdmin]
 	}
@@ -41,7 +60,7 @@ describe('STokensBridgeProxyAdmin', () => {
 					proxy.address
 				)
 				expect(implementation).to.equal(sTokensBridge.address)
-				const sTokensBridgeSecound = await deploy('STokensBridge')
+				const sTokensBridgeSecound = await deploy('STokensBridge') as STokensBridge
 				await proxyAdmin.upgrade(proxy.address, sTokensBridgeSecound.address)
 				const implementationSecound = await proxyAdmin.getProxyImplementation(
 					proxy.address
@@ -71,7 +90,7 @@ describe('STokensBridgeProxyAdmin', () => {
 				const [proxy, , proxyAdmin] = await init()
 				const adminAddress = await proxyAdmin.getProxyAdmin(proxy.address)
 				expect(adminAddress).to.equal(proxyAdmin.address)
-				const proxyAdminSecond = await deploy('STokensBridgeProxyAdmin')
+				const proxyAdminSecond = await deploy('STokensBridgeProxyAdmin') as STokensBridgeProxyAdmin
 				await proxyAdmin.changeProxyAdmin(
 					proxy.address,
 					proxyAdminSecond.address

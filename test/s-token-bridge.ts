@@ -4,29 +4,28 @@
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
-import { Contract, constants } from 'ethers'
+import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import {
 	deploy,
-	deployWithArg,
-	deployWith2Arg,
 	deployWith3Arg,
 	createMintParams,
-	createUpdateParams,
 	attach
 } from './utils'
-import { HARDHAT_ERROR } from './const'
-import { checkTokenUri } from './token-uri-test'
-import { STokensBridge } from '../typechain'
+import { STokensBridge } from '../typechain/STokensBridge'
+import { STokensManagerTest } from '../typechain/STokensManagerTest'
+import { STokensCertificate } from '../typechain/STokensCertificate'
+import { STokensSubstitute } from '../typechain/STokensSubstitute'
+import { ProxyAdmin } from '../typechain/ProxyAdmin'
+import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { messagePrefix } from '@ethersproject/hash'
 
 use(solidity)
 
 describe('STokensBridge', () => {
 	const init = async (): Promise<[Contract, Contract, Contract, SignerWithAddress, any, any]> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensManager = await deploy('STokensManagerTest')
+		const sTokensManager = await deploy('STokensManagerTest') as STokensManagerTest
 		const mintParam = createMintParams()
 		await sTokensManager.mint(
 			user.address, // user mints SToken
@@ -40,20 +39,20 @@ describe('STokensBridge', () => {
 		const filter = sTokensManager.filters.Transfer()
 		const events = await sTokensManager.queryFilter(filter)
 		const sTokenId = events[0].args!.tokenId.toString()
-		const sTokensCertificate = await deploy('STokensCertificate')
+		const sTokensCertificate = await deploy('STokensCertificate') as STokensCertificate
 		const data = ethers.utils.arrayify('0x')
-		const proxyAdmin = await deploy('ProxyAdmin')
+		const proxyAdmin = await deploy('ProxyAdmin') as ProxyAdmin
 		const proxy = await deployWith3Arg(
 			'TransparentUpgradeableProxy',
 			sTokensCertificate.address,
 			proxyAdmin.address,
 			data
-		)
+		) as TransparentUpgradeableProxy
 		const sTokensCertificateFactory = await ethers.getContractFactory(
 			'STokensCertificate'
 		)
-		const sTokensCertificateProxy = sTokensCertificateFactory.attach(proxy.address)
-		const sTokensBridge = await deploy('STokensBridge')
+		const sTokensCertificateProxy = sTokensCertificateFactory.attach(proxy.address) as STokensCertificate
+		const sTokensBridge = await deploy('STokensBridge') as STokensBridge
 		await sTokensBridge.initialize(sTokensManager.address, sTokensCertificateProxy.address)
 		await sTokensManager.connect(user).setApprovalForAll(sTokensBridge.address, true, { gasLimit: 1200000 })
 		return [sTokensManager, sTokensBridge, sTokensCertificateProxy, user, mintParam, sTokenId]
@@ -105,7 +104,7 @@ describe('STokensBridge', () => {
 				expect(certOwner).to.equal(user.address)
 				// check user got Cert20 
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
-				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
+				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress) as STokensSubstitute
 				// check amount
 				let amount = await sTokensSubstitute.balanceOf(user.address)
 				expect(amount).to.equal(mintParam.amount)
@@ -132,7 +131,7 @@ describe('STokensBridge', () => {
 
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
-				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
+				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress) as STokensSubstitute
 				await sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })
 				// check Redeem event
 				const filter = sTokensBridge.filters.Redeem()
@@ -181,7 +180,7 @@ describe('STokensBridge', () => {
 				const [owner,] = await ethers.getSigners()
 				await sTokensBridge.connect(user).depositSToken(sTokenId, { gasLimit: 2400000 })
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
-				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
+				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress) as STokensSubstitute
 				await sTokensSubstitute.connect(user).transfer(owner.address, 1)
 				await expect(sTokensBridge.connect(user).redeemSToken(sTokenId, { gasLimit: 1200000 })).to.be.revertedWith('ERC20: burn amount exceeds balance')
 			})

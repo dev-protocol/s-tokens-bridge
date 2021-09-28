@@ -4,29 +4,20 @@
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
-import { Contract, constants } from 'ethers'
+import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import {
 	deploy,
-	deployWithArg,
-	deployWith2Arg,
-	deployWith3Arg,
-	createMintParams,
-	createUpdateParams,
-	attach
 } from './utils'
-import { HARDHAT_ERROR } from './const'
-import { checkTokenUri } from './token-uri-test'
-import { STokensBridge, STokensCertificate } from '../typechain'
+import { STokensSubstitute } from '../typechain/STokensSubstitute'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { messagePrefix } from '@ethersproject/hash'
 
 use(solidity)
 
 describe('STokensSubstitute', () => {
 	const init = async (): Promise<[Contract, SignerWithAddress]> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensSubstitute = await deploy('STokensSubstitute')
+		const sTokensSubstitute = await deploy('STokensSubstitute') as STokensSubstitute
 		return [sTokensSubstitute, user]
 	}
 
