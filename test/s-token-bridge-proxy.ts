@@ -7,6 +7,7 @@ import {
 	deploy,
 	deployWith3Arg,
 	createMintParams,
+	MintParam,
 } from './utils'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { STokensBridge } from '../typechain/STokensBridge'
@@ -20,7 +21,7 @@ use(solidity)
 
 describe('STokensBridgeProxy', () => {
 	const init = async (): Promise<
-		[Contract, Contract, Contract, Contract, SignerWithAddress, any, any]
+		[Contract, Contract, Contract, Contract, SignerWithAddress, MintParam, string]
 	> => {
 		const [, user] = await ethers.getSigners()
 		const sTokensManager = await deploy('STokensManagerTest') as STokensManagerTest
