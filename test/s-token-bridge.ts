@@ -23,7 +23,7 @@ import { messagePrefix } from '@ethersproject/hash'
 
 use(solidity)
 
-describe('STokensManager', () => {
+describe('STokensBridge', () => {
 	const init = async (): Promise<[Contract, Contract, Contract, SignerWithAddress, any, any]> => {
 		const [, user] = await ethers.getSigners()
 		const sTokensManager = await deploy('STokensManagerTest')
@@ -106,11 +106,6 @@ describe('STokensManager', () => {
 				// check user got Cert20 
 				const sTokensSubstituteAddress = await sTokensBridge.sTokensSubstituteAddress(mintParam.property)
 				const sTokensSubstitute = await attach('STokensSubstitute', sTokensSubstituteAddress)
-				// check name and symbol of SubstituteToken
-				const name = await sTokensSubstitute.name()
-				expect(name).to.equal('sTokens Substitute V1')
-				const symbol = await sTokensSubstitute.symbol()
-				expect(symbol).to.equal('STOKENS-SUBSTITUTE-V1')
 				// check amount
 				let amount = await sTokensSubstitute.balanceOf(user.address)
 				expect(amount).to.equal(mintParam.amount)
