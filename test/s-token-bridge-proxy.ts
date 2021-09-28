@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
 import { Contract } from 'ethers'
