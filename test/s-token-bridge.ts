@@ -3,7 +3,6 @@
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
-import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import {
 	deploy,
@@ -24,7 +23,14 @@ use(solidity)
 
 describe('STokensBridge', () => {
 	const init = async (): Promise<
-		[Contract, Contract, Contract, SignerWithAddress, MintParam, string]
+		[
+			STokensManagerTest,
+			STokensBridge,
+			STokensCertificate,
+			SignerWithAddress,
+			MintParam,
+			string
+		]
 	> => {
 		const [, user] = await ethers.getSigners()
 		const sTokensManager = (await deploy(
@@ -126,9 +132,9 @@ describe('STokensBridge', () => {
 				// Check Deposit event
 				const filter = sTokensBridge.filters.Deposit()
 				const events = await sTokensBridge.queryFilter(filter)
-				const from = events[0].args!._from
-				const eventsSTokenId = events[0].args!._sTokenId
-				const certificateId = events[0].args!._certificateId
+				const from = events[0].args._from
+				const eventsSTokenId = events[0].args._sTokenId
+				const certificateId = events[0].args._certificateId
 				expect(from).to.equal(user.address)
 				expect(eventsSTokenId).to.equal(sTokenId)
 				expect(certificateId).to.equal(1)
@@ -198,9 +204,9 @@ describe('STokensBridge', () => {
 				// Check Redeem event
 				const filter = sTokensBridge.filters.Redeem()
 				const events = await sTokensBridge.queryFilter(filter)
-				const from = events[0].args!._from
-				const eventsSTokenId = events[0].args!._sTokenId
-				const certificateId = events[0].args!._certificateId
+				const from = events[0].args._from
+				const eventsSTokenId = events[0].args._sTokenId
+				const certificateId = events[0].args._certificateId
 				expect(from).to.equal(user.address)
 				expect(eventsSTokenId).to.equal(sTokenId)
 				expect(certificateId).to.equal(1)
@@ -230,7 +236,7 @@ describe('STokensBridge', () => {
 				// Check certId of 2nd Deposit is correct
 				const filter = sTokensBridge.filters.Deposit()
 				const events = await sTokensBridge.queryFilter(filter)
-				const certificateId = events[1].args!._certificateId
+				const certificateId = events[1].args._certificateId
 				expect(certificateId).to.equal(2)
 				const certOwner = await sTokensCertificateProxy.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)

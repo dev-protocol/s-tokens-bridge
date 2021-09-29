@@ -1,6 +1,6 @@
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
-import { Contract, constants } from 'ethers'
+import { constants } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import { deploy, deployWith3Arg } from './utils'
 import { STokensBridge } from '../typechain/STokensBridge'
@@ -13,7 +13,9 @@ import { ProxyAdmin } from '../typechain/ProxyAdmin'
 use(solidity)
 
 describe('STokensBridgeProxyAdmin', () => {
-	const init = async (): Promise<[Contract, Contract, Contract]> => {
+	const init = async (): Promise<
+		[STokensBridgeProxy, STokensBridge, ProxyAdmin]
+	> => {
 		const sTokensManager = (await deploy(
 			'STokensManagerTest'
 		)) as STokensManagerTest

@@ -2,7 +2,6 @@
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
-import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import { deploy, deployWith3Arg, createMintParams, MintParam } from './utils'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
@@ -18,10 +17,10 @@ use(solidity)
 describe('STokensBridgeProxy', () => {
 	const init = async (): Promise<
 		[
-			Contract,
-			Contract,
-			Contract,
-			Contract,
+			TransparentUpgradeableProxy,
+			STokensBridge,
+			STokensBridge,
+			ProxyAdmin,
 			SignerWithAddress,
 			MintParam,
 			string

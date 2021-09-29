@@ -1,6 +1,5 @@
 import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
-import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import { deploy } from './utils'
 import { STokensCertificate } from '../typechain/STokensCertificate'
@@ -9,7 +8,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 use(solidity)
 
 describe('STokensCertificate', () => {
-	const init = async (): Promise<[Contract, SignerWithAddress]> => {
+	const init = async (): Promise<[STokensCertificate, SignerWithAddress]> => {
 		const [, user] = await ethers.getSigners()
 		const sTokensCertificate = (await deploy(
 			'STokensCertificate'
