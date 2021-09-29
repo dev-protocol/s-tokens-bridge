@@ -7,7 +7,6 @@ import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC72
 import "hardhat/console.sol";
 
 contract STokensCertificate is ERC721Upgradeable, OwnableUpgradeable {
-
 	function initialize() external initializer {
 		__ERC721_init("sTokens Certificate V1", "STOKENS-CERTIFICATE-V1");
 		__Ownable_init();

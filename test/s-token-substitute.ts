@@ -2,9 +2,7 @@ import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
 import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
-import {
-	deploy,
-} from './utils'
+import { deploy } from './utils'
 import { STokensSubstitute } from '../typechain/STokensSubstitute'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
@@ -13,7 +11,9 @@ use(solidity)
 describe('STokensSubstitute', () => {
 	const init = async (): Promise<[Contract, SignerWithAddress]> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensSubstitute = await deploy('STokensSubstitute') as STokensSubstitute
+		const sTokensSubstitute = (await deploy(
+			'STokensSubstitute'
+		)) as STokensSubstitute
 		return [sTokensSubstitute, user]
 	}
 
@@ -44,7 +44,9 @@ describe('STokensSubstitute', () => {
 		describe('fail', () => {
 			it('user cannot mint', async () => {
 				const [sTokensSubstitute, user] = await init()
-				await expect(sTokensSubstitute.connect(user).mint(user.address, 1)).to.be.revertedWith('Ownable: caller is not the owner')
+				await expect(
+					sTokensSubstitute.connect(user).mint(user.address, 1)
+				).to.be.revertedWith('Ownable: caller is not the owner')
 			})
 		})
 	})
@@ -64,7 +66,9 @@ describe('STokensSubstitute', () => {
 			it('user cannot burn', async () => {
 				const [sTokensSubstitute, user] = await init()
 				await sTokensSubstitute.mint(user.address, 1)
-				await expect(sTokensSubstitute.connect(user).burn(user.address, 1)).to.be.revertedWith('Ownable: caller is not the owner')
+				await expect(
+					sTokensSubstitute.connect(user).burn(user.address, 1)
+				).to.be.revertedWith('Ownable: caller is not the owner')
 			})
 		})
 	})

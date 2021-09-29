@@ -57,12 +57,12 @@ export const createMintParams = (): any => {
 }
 
 export type MintParam = {
-	owner: string;
-	ownerSigner: string;
-	property: string;
-	amount: number;
-	price: number;
-};
+	owner: string
+	ownerSigner: string
+	property: string
+	amount: number
+	price: number
+}
 
 export const createUpdateParams = (tokenId = 1): any => ({
 	tokenId,

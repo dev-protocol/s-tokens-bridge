@@ -7,9 +7,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract STokensSubstitute is ERC20, Ownable {
-
-	constructor() ERC20("sTokens Substitute V1", "STOKENS-SUBSTITUTE-V1") {
-	}
+	constructor() ERC20("sTokens Substitute V1", "STOKENS-SUBSTITUTE-V1") {}
 
 	function mint(address account, uint256 amount) public onlyOwner {
 		_mint(account, amount);

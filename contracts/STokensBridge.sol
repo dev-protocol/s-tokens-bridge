@@ -31,7 +31,10 @@ contract STokensBridge is Initializable {
 		uint256 _certificateId
 	);
 
-	function initialize(address _sTokensAddress, address _sTokensCertificateProxyAddress) external initializer {
+	function initialize(
+		address _sTokensAddress,
+		address _sTokensCertificateProxyAddress
+	) external initializer {
 		sTokensAddress = _sTokensAddress;
 		sTokensCertificateProxyAddress = _sTokensCertificateProxyAddress;
 		ISTokensCertificate(sTokensCertificateProxyAddress).initialize();

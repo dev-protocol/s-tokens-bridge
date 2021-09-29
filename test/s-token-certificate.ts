@@ -2,9 +2,7 @@ import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
 import { Contract } from 'ethers'
 import { solidity } from 'ethereum-waffle'
-import {
-	deploy,
-} from './utils'
+import { deploy } from './utils'
 import { STokensCertificate } from '../typechain/STokensCertificate'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
@@ -13,7 +11,9 @@ use(solidity)
 describe('STokensCertificate', () => {
 	const init = async (): Promise<[Contract, SignerWithAddress]> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensCertificate = await deploy('STokensCertificate') as STokensCertificate
+		const sTokensCertificate = (await deploy(
+			'STokensCertificate'
+		)) as STokensCertificate
 		await sTokensCertificate.initialize()
 		return [sTokensCertificate, user]
 	}
@@ -21,9 +21,9 @@ describe('STokensCertificate', () => {
 	describe('initialize', () => {
 		it('The initialize function can only be executed once.', async () => {
 			const [sTokensCertificate] = await init()
-			await expect(
-				sTokensCertificate.initialize()
-			).to.be.revertedWith('Initializable: contract is already initialized')
+			await expect(sTokensCertificate.initialize()).to.be.revertedWith(
+				'Initializable: contract is already initialized'
+			)
 		})
 	})
 
@@ -54,7 +54,9 @@ describe('STokensCertificate', () => {
 		describe('fail', () => {
 			it('user cannot mint', async () => {
 				const [sTokensCertificate, user] = await init()
-				await expect(sTokensCertificate.connect(user).mint(user.address, 1)).to.be.revertedWith('Ownable: caller is not the owner')
+				await expect(
+					sTokensCertificate.connect(user).mint(user.address, 1)
+				).to.be.revertedWith('Ownable: caller is not the owner')
 			})
 		})
 	})
@@ -65,7 +67,9 @@ describe('STokensCertificate', () => {
 				const [sTokensCertificate, user] = await init()
 				await sTokensCertificate.mint(user.address, 1)
 				await sTokensCertificate.burn(1)
-				await expect(sTokensCertificate.ownerOf(1)).to.be.revertedWith('ERC721: owner query for nonexistent token')
+				await expect(sTokensCertificate.ownerOf(1)).to.be.revertedWith(
+					'ERC721: owner query for nonexistent token'
+				)
 			})
 		})
 
@@ -73,7 +77,9 @@ describe('STokensCertificate', () => {
 			it('user cannot burn', async () => {
 				const [sTokensCertificate, user] = await init()
 				await sTokensCertificate.mint(user.address, 1)
-				await expect(sTokensCertificate.connect(user).burn(1)).to.be.revertedWith('Ownable: caller is not the owner')
+				await expect(
+					sTokensCertificate.connect(user).burn(1)
+				).to.be.revertedWith('Ownable: caller is not the owner')
 			})
 		})
 	})
