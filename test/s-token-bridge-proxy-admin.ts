@@ -19,7 +19,10 @@ describe('STokensBridgeProxyAdmin', () => {
 		[STokensBridgeProxy, STokensBridge, ProxyAdmin]
 	> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensManagerMock = await deployMockContract(user, mockSTokensManagerABI)
+		const sTokensManagerMock = await deployMockContract(
+			user,
+			mockSTokensManagerABI
+		)
 		const sTokensCertificate = (await deploy(
 			'STokensCertificate'
 		)) as STokensCertificate

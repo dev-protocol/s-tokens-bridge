@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers, waffle } from 'hardhat'
-import { solidity } from 'ethereum-waffle'
+import { solidity, MockProvider } from 'ethereum-waffle'
 import { deploy, deployWith3Arg } from './utils'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { STokensBridge } from '../typechain/STokensBridge'
@@ -10,7 +9,6 @@ import { STokensBridgeTest } from '../typechain/STokensBridgeTest'
 import { STokensCertificate } from '../typechain/STokensCertificate'
 import { ProxyAdmin } from '../typechain/ProxyAdmin'
 import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
-import { MockProvider } from 'ethereum-waffle'
 import { Wallet } from 'ethers'
 import { mockSTokensManagerABI } from './mockABI'
 
@@ -26,7 +24,7 @@ describe('STokensBridgeProxy', () => {
 			STokensBridge,
 			ProxyAdmin,
 			SignerWithAddress,
-			Wallet,
+			Wallet
 		]
 	> => {
 		const [, user] = await ethers.getSigners()
@@ -60,7 +58,10 @@ describe('STokensBridgeProxy', () => {
 			'STokensBridge'
 		)
 		const proxyDelegate = sTokensBridgeFactory.attach(proxy.address)
-		const sTokensManagerMock = await deployMockContract(user, mockSTokensManagerABI)
+		const sTokensManagerMock = await deployMockContract(
+			user,
+			mockSTokensManagerABI
+		)
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()
 		const sTokenId = 1
@@ -80,21 +81,13 @@ describe('STokensBridgeProxy', () => {
 			sTokensCertificateProxy.address
 		)
 
-		return [
-			proxy,
-			proxyDelegate,
-			sTokensBridge,
-			proxyAdmin,
-			user,
-			property
-		]
+		return [proxy, proxyDelegate, sTokensBridge, proxyAdmin, user, property]
 	}
 
 	describe('upgradeTo', () => {
 		describe('success', () => {
 			it('upgrade logic contract', async () => {
-				const [proxy, proxyDelegate, , proxyAdmin, user] =
-					await init()
+				const [proxy, proxyDelegate, , proxyAdmin, user] = await init()
 				await proxyDelegate
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })

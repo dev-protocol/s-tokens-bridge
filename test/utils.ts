@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ethers } from 'hardhat'
 import { Contract } from 'ethers'
-import { MockProvider } from 'ethereum-waffle'
 
 export const deploy = async (name: string): Promise<Contract> => {
 	const factoryStrage = await ethers.getContractFactory(name)
