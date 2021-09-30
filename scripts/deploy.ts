@@ -1,37 +1,119 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
-import { ethers, providers, ContractFactory } from 'ethers'
-import { config, DotenvParseOutput } from 'dotenv'
-import { Class } from 'type-fest'
-import Provider = providers.Provider
+/* eslint-disable spaced-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { ethers } from 'hardhat'
+import { STokensBridge } from '../typechain/STokensBridge'
+import { STokensBridgeL2 } from '../typechain/STokensBridgeL2'
+import { STokensCertificate } from '../typechain/STokensCertificate'
+import { STokensBridgeProxyAdmin } from '../typechain/STokensBridgeProxyAdmin'
+import { STokensBridgeProxy } from '../typechain/STokensBridgeProxy'
 
-export type ContractDeployer = (
-	_wallet: ethers.Wallet,
-	_factory: Class<ContractFactory>,
-	_envs: DotenvParseOutput
-) => Promise<void>
+async function main() {
+	//!please check!!!!!!!!!
+	const sTokensManagerAddress = '0xD6D07f1c048bDF2B3d5d9B6c25eD1FC5348D0A70'
+	const sTokensManagerL2Address = '0xD6D07f1c048bDF2B3d5d9B6c25eD1FC5348D0A70'
+	//!!!!!!!!!!!!!!!!!!!!!!
 
-const getDeployer = (
-	deployMnemonic?: string,
-	deployNodeUrl = 'http://127.0.0.1:8545'
-): ethers.Wallet => {
-	if (!deployMnemonic) {
-		throw new Error(
-			`Error: No DEPLOY_MNEMONIC env var set. Please add it to .<environment>.env file it and try again. See .env.example for more info.\n`
-		)
-	}
+	// STokensCertificate
+	const sTokensCertificateFactory = await ethers.getContractFactory(
+		'STokensCertificate'
+	)
+	const sTokensCertificate = await sTokensCertificateFactory.deploy() as STokensCertificate
+	await sTokensCertificate.deployed()
 
-	// Connect provider
-	const provider: Provider = new ethers.providers.JsonRpcProvider(deployNodeUrl)
+	const sTokensCertificateL2 = await sTokensCertificateFactory.deploy() as STokensCertificate
+	await sTokensCertificateL2.deployed()
 
-	return ethers.Wallet.fromMnemonic(deployMnemonic).connect(provider)
+	// sTokensBridge
+	const sTokensBridgeFactory = await ethers.getContractFactory(
+		'STokensBridge'
+	)
+
+	const sTokensBridge = await sTokensBridgeFactory.deploy() as STokensBridge
+	await sTokensBridge.deployed()
+
+	// sTokensBridgeL2
+	const sTokensBridgeL2Factory = await ethers.getContractFactory(
+		'STokensBridgeL2'
+	)
+
+	const sTokensBridgeL2 = await sTokensBridgeL2Factory.deploy() as STokensBridgeL2
+	await sTokensBridgeL2.deployed()
+
+	// STokensBridgeProxyAdmin
+	const sTokensBridgeProxyAdminFactory = await ethers.getContractFactory(
+		'STokensBridgeProxyAdmin'
+	)
+	const sTokensBridgeProxyAdmin =
+		await sTokensBridgeProxyAdminFactory.deploy() as STokensBridgeProxyAdmin
+	await sTokensBridgeProxyAdmin.deployed()
+
+	// STokensBridgeProxy
+	const sTokensBridgeProxyFactory = await ethers.getContractFactory(
+		'STokensBridgeProxy'
+	)
+
+	// sTokensCertificateProxy
+	const data = ethers.utils.arrayify('0x')
+
+	const sTokensCertificateProxy = await sTokensBridgeProxyFactory.deploy(
+		sTokensCertificate.address,
+		sTokensBridgeProxyAdmin.address,
+		data
+	) as STokensBridgeProxy
+	await sTokensCertificateProxy.deployed()
+
+	const sTokensCertificateL2Proxy = await sTokensBridgeProxyFactory.deploy(
+		sTokensCertificateL2.address,
+		sTokensBridgeProxyAdmin.address,
+		data
+	) as STokensBridgeProxy
+	await sTokensCertificateL2Proxy.deployed()
+
+	// sTokensBridgeProxy
+	const sTokensBridgeProxy = await sTokensBridgeProxyFactory.deploy(
+		sTokensBridge.address,
+		sTokensBridgeProxyAdmin.address,
+		data
+	) as STokensBridgeProxy
+	await sTokensBridgeProxy.deployed()
+
+	const proxy = sTokensBridgeFactory.attach(sTokensBridgeProxy.address) as STokensBridge
+	await proxy.initialize(
+		sTokensManagerAddress,
+		sTokensCertificateProxy.address
+	)
+
+	// sTokensBridgeL2Proxy
+	const sTokensBridgeL2Proxy = await sTokensBridgeProxyFactory.deploy(
+		sTokensBridgeL2.address,
+		sTokensBridgeProxyAdmin.address,
+		data
+	) as STokensBridgeProxy
+	await sTokensBridgeProxy.deployed()
+
+	const proxyL2 = sTokensBridgeL2Factory.attach(sTokensBridgeL2Proxy.address) as STokensBridgeL2
+	await proxyL2.initialize(
+		sTokensManagerL2Address,
+		sTokensCertificateL2Proxy.address
+	)
+
+	console.log('sTokensCertificate deployed to:', sTokensCertificate.address)
+	console.log('sTokensCertificateProxy deployed to:', sTokensCertificateProxy.address)
+	console.log('sTokensCertificateL2 deployed to:', sTokensCertificateL2.address)
+	console.log('sTokensCertificateL2Proxy deployed to:', sTokensCertificateL2Proxy.address)
+	console.log('sTokensBridge deployed to:', sTokensBridge.address)
+	console.log('sTokensBridgeProxy deployed to:', sTokensBridgeProxy.address)
+	console.log('sTokensBridgeL2 deployed to:', sTokensBridgeL2.address)
+	console.log('sTokensBridgeL2Proxy deployed to:', sTokensBridgeL2Proxy.address)
+	console.log(
+		'sTokensBridgeProxyAdmin deployed to:',
+		sTokensBridgeProxyAdmin.address
+	)
 }
 
-export const deploy = async (deployer: ContractDeployer): Promise<void> => {
-	const envs = config().parsed ?? {}
-	const mnemonic = envs.DEPLOY_MNEMONIC
-	const node = envs.DEPLOY_NODE_URL
-	const wallet = getDeployer(mnemonic, node)
-
-	console.log(`Deploying to network [${node ?? 'local'}]`)
-	await deployer(wallet, ContractFactory, envs)
-}
+main()
+	.then(() => process.exit(0))
+	.catch((error) => {
+		console.error(error)
+		process.exit(1)
+	})
