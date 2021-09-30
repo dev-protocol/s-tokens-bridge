@@ -1,24 +1,25 @@
 import { expect, use } from 'chai'
-import { ethers } from 'hardhat'
+import { ethers, waffle } from 'hardhat'
 import { constants } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import { deploy, deployWith3Arg } from './utils'
 import { STokensBridge } from '../typechain/STokensBridge'
 import { STokensBridgeProxy } from '../typechain/STokensBridgeProxy'
 import { STokensBridgeProxyAdmin } from '../typechain/STokensBridgeProxyAdmin'
-import { STokensManagerTest } from '../typechain/STokensManagerTest'
 import { STokensCertificate } from '../typechain/STokensCertificate'
 import { ProxyAdmin } from '../typechain/ProxyAdmin'
+import { mockSTokensManagerABI } from './mockABI'
 
 use(solidity)
+
+const { deployMockContract } = waffle
 
 describe('STokensBridgeProxyAdmin', () => {
 	const init = async (): Promise<
 		[STokensBridgeProxy, STokensBridge, ProxyAdmin]
 	> => {
-		const sTokensManager = (await deploy(
-			'STokensManagerTest'
-		)) as STokensManagerTest
+		const [, user] = await ethers.getSigners()
+		const sTokensManagerMock = await deployMockContract(user, mockSTokensManagerABI)
 		const sTokensCertificate = (await deploy(
 			'STokensCertificate'
 		)) as STokensCertificate
@@ -49,7 +50,7 @@ describe('STokensBridgeProxyAdmin', () => {
 		)
 		const proxyDelegate = sTokensBridgeFactory.attach(proxy.address)
 		await proxyDelegate.initialize(
-			sTokensManager.address,
+			sTokensManagerMock.address,
 			sTokensCertificateProxy.address
 		)
 

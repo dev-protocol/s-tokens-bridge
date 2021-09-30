@@ -1,18 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
-import { ethers } from 'hardhat'
+import { ethers, waffle } from 'hardhat'
 import { solidity } from 'ethereum-waffle'
-import { deploy, deployWith3Arg, createMintParams, MintParam } from './utils'
+import { deploy, deployWith3Arg } from './utils'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { STokensBridge } from '../typechain/STokensBridge'
 import { STokensBridgeTest } from '../typechain/STokensBridgeTest'
-import { STokensManagerTest } from '../typechain/STokensManagerTest'
 import { STokensCertificate } from '../typechain/STokensCertificate'
 import { ProxyAdmin } from '../typechain/ProxyAdmin'
 import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
+import { MockProvider } from 'ethereum-waffle'
+import { Wallet } from 'ethers'
+import { mockSTokensManagerABI } from './mockABI'
 
 use(solidity)
+
+const { deployMockContract } = waffle
 
 describe('STokensBridgeProxy', () => {
 	const init = async (): Promise<
@@ -22,27 +26,10 @@ describe('STokensBridgeProxy', () => {
 			STokensBridge,
 			ProxyAdmin,
 			SignerWithAddress,
-			MintParam,
-			string
+			Wallet,
 		]
 	> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensManager = (await deploy(
-			'STokensManagerTest'
-		)) as STokensManagerTest
-		const mintParam = createMintParams()
-		await sTokensManager.mint(
-			user.address, // User mints SToken
-			mintParam.property,
-			mintParam.amount,
-			mintParam.price,
-			{
-				gasLimit: 1200000,
-			}
-		)
-		const filter = sTokensManager.filters.Transfer()
-		const events = await sTokensManager.queryFilter(filter)
-		const sTokenId = events[0].args.tokenId.toString()
 
 		const sTokensCertificate = (await deploy(
 			'STokensCertificate'
@@ -73,13 +60,25 @@ describe('STokensBridgeProxy', () => {
 			'STokensBridge'
 		)
 		const proxyDelegate = sTokensBridgeFactory.attach(proxy.address)
+		const sTokensManagerMock = await deployMockContract(user, mockSTokensManagerABI)
+		const provider = new MockProvider()
+		const property = provider.createEmptyWallet()
+		const sTokenId = 1
+		// User can transfer sTokensId=1 to Bridge
+		await sTokensManagerMock.mock.positions
+			.withArgs(sTokenId)
+			.returns(property.address, 10, 1, 1, 1)
+		await sTokensManagerMock.mock.transferFrom
+			.withArgs(user.address, proxyDelegate.address, sTokenId)
+			.returns()
+		// User can get back sTokensId=1 from Bridge
+		await sTokensManagerMock.mock.transferFrom
+			.withArgs(sTokensBridge.address, user.address, sTokenId)
+			.returns()
 		await proxyDelegate.initialize(
-			sTokensManager.address,
+			sTokensManagerMock.address,
 			sTokensCertificateProxy.address
 		)
-		await sTokensManager
-			.connect(user)
-			.setApprovalForAll(proxyDelegate.address, true, { gasLimit: 1200000 })
 
 		return [
 			proxy,
@@ -87,22 +86,21 @@ describe('STokensBridgeProxy', () => {
 			sTokensBridge,
 			proxyAdmin,
 			user,
-			mintParam,
-			sTokenId,
+			property
 		]
 	}
 
 	describe('upgradeTo', () => {
 		describe('success', () => {
 			it('upgrade logic contract', async () => {
-				const [proxy, proxyDelegate, , proxyAdmin, user, , sTokenId] =
+				const [proxy, proxyDelegate, , proxyAdmin, user] =
 					await init()
 				await proxyDelegate
 					.connect(user)
-					.depositSToken(sTokenId, { gasLimit: 2400000 })
+					.depositSToken(1, { gasLimit: 2400000 })
 				const certificateId = await proxyDelegate.sTokensCertificateId(
 					user.address,
-					sTokenId
+					1
 				)
 				expect(certificateId).to.equal(1)
 				const sTokensBridgeSecond = (await deploy(
@@ -136,23 +134,23 @@ describe('STokensBridgeProxy', () => {
 			})
 
 			it('The data is stored in the proxy(ERC721Upgradeable)', async () => {
-				const [proxy, proxyDelegate, , proxyAdmin, user, mintParam, sTokenId] =
+				const [proxy, proxyDelegate, , proxyAdmin, user, property] =
 					await init()
 				await proxyDelegate
 					.connect(user)
-					.depositSToken(sTokenId, { gasLimit: 2400000 })
+					.depositSToken(1, { gasLimit: 2400000 })
 				const sTokensCertificateIdFirst =
-					await proxyDelegate.sTokensCertificateId(user.address, sTokenId)
+					await proxyDelegate.sTokensCertificateId(user.address, 1)
 				const sTokensSubstituteAddressFirst =
-					await proxyDelegate.sTokensSubstituteAddress(mintParam.property)
+					await proxyDelegate.sTokensSubstituteAddress(property.address)
 				const sTokensBridgeSecond = (await deploy(
 					'STokensBridge'
 				)) as STokensBridge
 				await proxyAdmin.upgrade(proxy.address, sTokensBridgeSecond.address)
 				const sTokensCertificateIdSecond =
-					await proxyDelegate.sTokensCertificateId(user.address, sTokenId)
+					await proxyDelegate.sTokensCertificateId(user.address, 1)
 				const sTokensSubstituteAddressSecond =
-					await proxyDelegate.sTokensSubstituteAddress(mintParam.property)
+					await proxyDelegate.sTokensSubstituteAddress(property.address)
 				expect(sTokensCertificateIdFirst).to.equal(sTokensCertificateIdSecond)
 				expect(sTokensSubstituteAddressFirst).to.equal(
 					sTokensSubstituteAddressSecond

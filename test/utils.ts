@@ -43,35 +43,6 @@ export const deployWith3Arg = async (
 	return contract
 }
 
-export const createMintParams = (): any => {
-	const provider = new MockProvider()
-	const owner = provider.createEmptyWallet()
-	const property = provider.createEmptyWallet()
-	return {
-		owner: owner.address,
-		ownerSigner: owner,
-		property: property.address,
-		amount: 10,
-		price: 20,
-	}
-}
-
-export type MintParam = {
-	owner: string
-	ownerSigner: string
-	property: string
-	amount: number
-	price: number
-}
-
-export const createUpdateParams = (tokenId = 1): any => ({
-	tokenId,
-	amount: 100,
-	price: 200,
-	cumulativeReward: 300,
-	pendingReward: 400,
-})
-
 export const attach = async (name: string, addr: string): Promise<Contract> => {
 	const factoryStrage = await ethers.getContractFactory(name)
 	const contract = factoryStrage.attach(addr)
