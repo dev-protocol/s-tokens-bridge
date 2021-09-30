@@ -11,7 +11,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 import "hardhat/console.sol";
 
-contract STokensBridgeL2 is Initializable{
+contract STokensBridgeL2 is Initializable {
 	address public sTokensAddress;
 	address public sTokensCertificateProxyAddress;
 	uint256 public certificateIdCounter;
@@ -40,8 +40,10 @@ contract STokensBridgeL2 is Initializable{
 	}
 
 	function depositSToken(uint256 _sTokenId) public {
-		ISTokensManager.StakingPositions memory stakingPositions = ISTokensManager(sTokensAddress)
-			.positions(_sTokenId);
+		ISTokensManager.StakingPositions
+			memory stakingPositions = ISTokensManager(sTokensAddress).positions(
+				_sTokenId
+			);
 
 		IERC721Upgradeable(sTokensAddress).transferFrom(
 			msg.sender,
@@ -62,10 +64,8 @@ contract STokensBridgeL2 is Initializable{
 				sTokensSubstitute
 			);
 		}
-		ISTokensSubstitute(sTokensSubstituteAddress[stakingPositions.property]).mint(
-			msg.sender,
-			stakingPositions.amount
-		);
+		ISTokensSubstitute(sTokensSubstituteAddress[stakingPositions.property])
+			.mint(msg.sender, stakingPositions.amount);
 		emit Deposit(msg.sender, _sTokenId, certificateIdCounter);
 	}
 
@@ -81,13 +81,13 @@ contract STokensBridgeL2 is Initializable{
 			_sTokenId
 		);
 
-		ISTokensManager.StakingPositions memory stakingPositions = ISTokensManager(sTokensAddress)
-			.positions(_sTokenId);
+		ISTokensManager.StakingPositions
+			memory stakingPositions = ISTokensManager(sTokensAddress).positions(
+				_sTokenId
+			);
 
-		ISTokensSubstitute(sTokensSubstituteAddress[stakingPositions.property]).burn(
-			msg.sender,
-			stakingPositions.amount
-		);
+		ISTokensSubstitute(sTokensSubstituteAddress[stakingPositions.property])
+			.burn(msg.sender, stakingPositions.amount);
 		emit Redeem(msg.sender, _sTokenId, certificateId);
 	}
 }

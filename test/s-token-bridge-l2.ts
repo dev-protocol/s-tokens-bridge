@@ -48,7 +48,13 @@ describe('STokensBridgeL2', () => {
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()
 		const sTokenId = 1
-		const positions = { property: property.address, amount: 10, price: 1, cumulativeReward: 1, pendingReward: 1 }
+		const positions = {
+			property: property.address,
+			amount: 10,
+			price: 1,
+			cumulativeReward: 1,
+			pendingReward: 1,
+		}
 		// User can transfer sTokensId=1 to Bridge
 		await sTokensManagerMock.mock.positions
 			.withArgs(sTokenId)
@@ -162,7 +168,9 @@ describe('STokensBridgeL2', () => {
 					'STokensSubstitute',
 					sTokensSubstituteAddress
 				)) as STokensSubstitute
-				await sTokensBridgeL2.connect(user).redeemSToken(1, { gasLimit: 1200000 })
+				await sTokensBridgeL2
+					.connect(user)
+					.redeemSToken(1, { gasLimit: 1200000 })
 				// Check Redeem event
 				const filter = sTokensBridgeL2.filters.Redeem()
 				const events = await sTokensBridgeL2.queryFilter(filter)
@@ -185,7 +193,9 @@ describe('STokensBridgeL2', () => {
 				await sTokensBridgeL2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
-				await sTokensBridgeL2.connect(user).redeemSToken(1, { gasLimit: 1200000 })
+				await sTokensBridgeL2
+					.connect(user)
+					.redeemSToken(1, { gasLimit: 1200000 })
 				await sTokensBridgeL2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
@@ -197,7 +207,9 @@ describe('STokensBridgeL2', () => {
 				const certOwner = await sTokensCertificateProxy.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)
 				// Check certId=2 is correctly burned
-				await sTokensBridgeL2.connect(user).redeemSToken(1, { gasLimit: 1200000 })
+				await sTokensBridgeL2
+					.connect(user)
+					.redeemSToken(1, { gasLimit: 1200000 })
 				await expect(sTokensCertificateProxy.ownerOf(2)).to.be.revertedWith(
 					'ERC721: owner query for nonexistent token'
 				)

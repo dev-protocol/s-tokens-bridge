@@ -125,9 +125,9 @@ export const mockSTokensManagerL2ABI = [
 						type: 'uint256',
 					},
 				],
-				internalType: "struct ISTokensManager.StakingPositions",
-				name: "",
-				type: "tuple"
+				internalType: 'struct ISTokensManager.StakingPositions',
+				name: '',
+				type: 'tuple',
 			},
 		],
 		stateMutability: 'view',
