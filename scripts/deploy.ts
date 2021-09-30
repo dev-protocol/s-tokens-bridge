@@ -20,9 +20,6 @@ async function main() {
 	const sTokensCertificate = await sTokensCertificateFactory.deploy() as STokensCertificate
 	await sTokensCertificate.deployed()
 
-	const sTokensCertificateL2 = await sTokensCertificateFactory.deploy() as STokensCertificate
-	await sTokensCertificateL2.deployed()
-
 	// sTokensBridge
 	const sTokensBridgeFactory = await ethers.getContractFactory(
 		'STokensBridge'
@@ -63,7 +60,7 @@ async function main() {
 	await sTokensCertificateProxy.deployed()
 
 	const sTokensCertificateL2Proxy = await sTokensBridgeProxyFactory.deploy(
-		sTokensCertificateL2.address,
+		sTokensCertificate.address,
 		sTokensBridgeProxyAdmin.address,
 		data
 	) as STokensBridgeProxy
@@ -99,7 +96,6 @@ async function main() {
 
 	console.log('sTokensCertificate deployed to:', sTokensCertificate.address)
 	console.log('sTokensCertificateProxy deployed to:', sTokensCertificateProxy.address)
-	console.log('sTokensCertificateL2 deployed to:', sTokensCertificateL2.address)
 	console.log('sTokensCertificateL2Proxy deployed to:', sTokensCertificateL2Proxy.address)
 	console.log('sTokensBridge deployed to:', sTokensBridge.address)
 	console.log('sTokensBridgeProxy deployed to:', sTokensBridgeProxy.address)
