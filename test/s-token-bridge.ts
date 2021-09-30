@@ -197,7 +197,7 @@ describe('STokensBridge', () => {
 				expect(certOwner).to.equal(user.address)
 				// Check certId=2 is correctly burned
 				await sTokensBridge.connect(user).redeemSToken(1, { gasLimit: 1200000 })
-				await expect(sTokensCertificateProxy.ownerOf(1)).to.be.revertedWith(
+				await expect(sTokensCertificateProxy.ownerOf(2)).to.be.revertedWith(
 					'ERC721: owner query for nonexistent token'
 				)
 			})
