@@ -1,10 +1,6 @@
 /* eslint-disable spaced-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { ethers } from 'hardhat'
-import { STokensBridge } from '../typechain/STokensBridge'
-import { STokensCertificate } from '../typechain/STokensCertificate'
-import { STokensBridgeProxyAdmin } from '../typechain/STokensBridgeProxyAdmin'
-import { STokensBridgeProxy } from '../typechain/STokensBridgeProxy'
 
 async function main() {
 	//!please check!!!!!!!!!
@@ -15,23 +11,20 @@ async function main() {
 	const sTokensCertificateFactory = await ethers.getContractFactory(
 		'STokensCertificate'
 	)
-	const sTokensCertificate = await sTokensCertificateFactory.deploy() as STokensCertificate
+	const sTokensCertificate = await sTokensCertificateFactory.deploy()!
 	await sTokensCertificate.deployed()
 
-	// sTokensBridge
-	const sTokensBridgeFactory = await ethers.getContractFactory(
-		'STokensBridge'
-	)
+	// STokensBridge
+	const sTokensBridgeFactory = await ethers.getContractFactory('STokensBridge')
 
-	const sTokensBridge = await sTokensBridgeFactory.deploy() as STokensBridge
+	const sTokensBridge = await sTokensBridgeFactory.deploy()!
 	await sTokensBridge.deployed()
 
 	// STokensBridgeProxyAdmin
 	const sTokensBridgeProxyAdminFactory = await ethers.getContractFactory(
 		'STokensBridgeProxyAdmin'
 	)
-	const sTokensBridgeProxyAdmin =
-		await sTokensBridgeProxyAdminFactory.deploy() as STokensBridgeProxyAdmin
+	const sTokensBridgeProxyAdmin = await sTokensBridgeProxyAdminFactory.deploy()!
 	await sTokensBridgeProxyAdmin.deployed()
 
 	// STokensBridgeProxy
@@ -39,33 +32,32 @@ async function main() {
 		'STokensBridgeProxy'
 	)
 
-	// sTokensCertificateProxy
+	// STokensCertificateProxy
 	const data = ethers.utils.arrayify('0x')
 
 	const sTokensCertificateProxy = await sTokensBridgeProxyFactory.deploy(
 		sTokensCertificate.address,
 		sTokensBridgeProxyAdmin.address,
 		data
-	) as STokensBridgeProxy
+	)!
 	await sTokensCertificateProxy.deployed()
 
-	// sTokensBridgeProxy
+	// STokensBridgeProxy
 	const sTokensBridgeProxy = await sTokensBridgeProxyFactory.deploy(
 		sTokensBridge.address,
 		sTokensBridgeProxyAdmin.address,
 		data
-	) as STokensBridgeProxy
+	)!
 	await sTokensBridgeProxy.deployed()
 
-	const proxy = sTokensBridgeFactory.attach(sTokensBridgeProxy.address) as STokensBridge
-	await proxy.initialize(
-		sTokensManagerAddress,
-		sTokensCertificateProxy.address
-	)
-
+	const proxy = sTokensBridgeFactory.attach(sTokensBridgeProxy.address)!
+	await proxy.initialize(sTokensManagerAddress, sTokensCertificateProxy.address)
 
 	console.log('sTokensCertificate deployed to:', sTokensCertificate.address)
-	console.log('sTokensCertificateProxy deployed to:', sTokensCertificateProxy.address)
+	console.log(
+		'sTokensCertificateProxy deployed to:',
+		sTokensCertificateProxy.address
+	)
 	console.log('sTokensBridge deployed to:', sTokensBridge.address)
 	console.log('sTokensBridgeProxy deployed to:', sTokensBridgeProxy.address)
 	console.log(
