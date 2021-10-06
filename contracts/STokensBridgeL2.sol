@@ -9,8 +9,6 @@ import {ISTokensSubstitute} from "./interface/ISTokensSubstitute.sol";
 import {ISTokensCertificate} from "./interface/ISTokensCertificate.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import "hardhat/console.sol";
-
 contract STokensBridgeL2 is Initializable {
 	address public sTokensAddress;
 	address public sTokensCertificateAddress;
