@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
@@ -21,10 +20,14 @@ describe('STokensBridge', () => {
 		[STokensBridge, STokensCertificate, Contract, SignerWithAddress, Wallet]
 	> => {
 		const [, user] = await ethers.getSigners()
-        // Ceritificate
-        const STokensCertificate = await ethers.getContractFactory("STokensCertificate");
-        // Do not initialize because initialize will be implemented by Bridge initialize()
-        const sTokensCertificate = await upgrades.deployProxy(STokensCertificate, {initializer: false}) as STokensCertificate;
+		// Ceritificate
+		const STokensCertificate = await ethers.getContractFactory(
+			'STokensCertificate'
+		)
+		// Do not initialize because initialize will be implemented by Bridge initialize()
+		const sTokensCertificate = (await upgrades.deployProxy(STokensCertificate, {
+			initializer: false,
+		})) as STokensCertificate
 
 		// STokens
 		const sTokensManagerMock = await deployMockContract(
@@ -33,9 +36,12 @@ describe('STokensBridge', () => {
 		)
 
 		// Bridge
-        const STokensBridge = await ethers.getContractFactory("STokensBridge");
+		const STokensBridge = await ethers.getContractFactory('STokensBridge')
 		// Here Bridge is initialized (and Cert too)
-        const sTokensBridge = await upgrades.deployProxy(STokensBridge, [sTokensManagerMock.address, sTokensCertificate.address]) as STokensBridge;
+		const sTokensBridge = (await upgrades.deployProxy(STokensBridge, [
+			sTokensManagerMock.address,
+			sTokensCertificate.address,
+		])) as STokensBridge
 
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()

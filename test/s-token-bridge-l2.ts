@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers, waffle, upgrades } from 'hardhat'
 import { solidity, MockProvider } from 'ethereum-waffle'
-import { deploy, deployWith3Arg, attach } from './utils'
+import { attach } from './utils'
 import { STokensBridgeL2 } from '../typechain/STokensBridgeL2'
 import { STokensCertificate } from '../typechain/STokensCertificate'
 import { STokensSubstitute } from '../typechain/STokensSubstitute'
-import { ProxyAdmin } from '../typechain/ProxyAdmin'
-import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { Contract, Wallet } from 'ethers'
 import { mockSTokensManagerL2ABI } from './mockABI'
@@ -24,9 +21,13 @@ describe('STokensBridgeL2', () => {
 	> => {
 		const [, user] = await ethers.getSigners()
 		// Ceritificate
-		const STokensCertificate = await ethers.getContractFactory("STokensCertificate");
+		const STokensCertificate = await ethers.getContractFactory(
+			'STokensCertificate'
+		)
 		// Do not initialize because initialize will be implemented by BridgeL2 initialize()
-		const sTokensCertificate = await upgrades.deployProxy(STokensCertificate, { initializer: false }) as STokensCertificate;
+		const sTokensCertificate = (await upgrades.deployProxy(STokensCertificate, {
+			initializer: false,
+		})) as STokensCertificate
 
 		// STokens
 		const sTokensManagerMock = await deployMockContract(
@@ -35,9 +36,12 @@ describe('STokensBridgeL2', () => {
 		)
 
 		// BridgeL2
-		const STokensBridgeL2 = await ethers.getContractFactory("STokensBridgeL2");
+		const STokensBridgeL2 = await ethers.getContractFactory('STokensBridgeL2')
 		// Here BridgeL2 is initialized (and Cert too)
-		const sTokensBridgeL2 = await upgrades.deployProxy(STokensBridgeL2, [sTokensManagerMock.address, sTokensCertificate.address]) as STokensBridgeL2;
+		const sTokensBridgeL2 = (await upgrades.deployProxy(STokensBridgeL2, [
+			sTokensManagerMock.address,
+			sTokensCertificate.address,
+		])) as STokensBridgeL2
 
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()
