@@ -31,7 +31,7 @@ describe("STokensCertificate", function () {
         // Check initialized constans of BridgeUpgraded
         const sTokensAddress = await sTokensBridgeUpgraded.sTokensAddress()
         expect(sTokensAddress).to.equal(sTokensManagerMock.address)
-        const sTokensCertificateAddress = await sTokensBridgeUpgraded.sTokensCertificateProxyAddress()
+        const sTokensCertificateAddress = await sTokensBridgeUpgraded.sTokensCertificateAddress()
         expect(sTokensCertificateAddress).to.equal(sTokensCertificate.address)
 
         // Check initialized constans of CertificateUpgraded

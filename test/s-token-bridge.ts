@@ -2,14 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
-import { ethers, waffle } from 'hardhat'
+import { ethers, waffle, upgrades } from 'hardhat'
 import { solidity, MockProvider } from 'ethereum-waffle'
-import { deploy, deployWith3Arg, attach } from './utils'
+import { attach } from './utils'
 import { STokensBridge } from '../typechain/STokensBridge'
 import { STokensCertificate } from '../typechain/STokensCertificate'
 import { STokensSubstitute } from '../typechain/STokensSubstitute'
-import { ProxyAdmin } from '../typechain/ProxyAdmin'
-import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { Contract, Wallet } from 'ethers'
 import { mockSTokensManagerABI } from './mockABI'
@@ -23,28 +21,22 @@ describe('STokensBridge', () => {
 		[STokensBridge, STokensCertificate, Contract, SignerWithAddress, Wallet]
 	> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensCertificate = (await deploy(
-			'STokensCertificate'
-		)) as STokensCertificate
-		const data = ethers.utils.arrayify('0x')
-		const proxyAdmin = (await deploy('ProxyAdmin')) as ProxyAdmin
-		const proxy = (await deployWith3Arg(
-			'TransparentUpgradeableProxy',
-			sTokensCertificate.address,
-			proxyAdmin.address,
-			data
-		)) as TransparentUpgradeableProxy
-		const sTokensCertificateFactory = await ethers.getContractFactory(
-			'STokensCertificate'
-		)
-		const sTokensCertificateProxy = sTokensCertificateFactory.attach(
-			proxy.address
-		)!
-		const sTokensBridge = (await deploy('STokensBridge')) as STokensBridge
+        // Ceritificate
+        const STokensCertificate = await ethers.getContractFactory("STokensCertificate");
+        // Do not initialize because initialize will be implemented by Bridge initialize()
+        const sTokensCertificate = await upgrades.deployProxy(STokensCertificate, {initializer: false}) as STokensCertificate;
+
+		// STokens
 		const sTokensManagerMock = await deployMockContract(
 			user,
 			mockSTokensManagerABI
 		)
+
+		// Bridge
+        const STokensBridge = await ethers.getContractFactory("STokensBridge");
+		// Here Bridge is initialized (and Cert too)
+        const sTokensBridge = await upgrades.deployProxy(STokensBridge, [sTokensManagerMock.address, sTokensCertificate.address]) as STokensBridge;
+
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()
 		const sTokenId = 1
@@ -59,13 +51,9 @@ describe('STokensBridge', () => {
 		await sTokensManagerMock.mock.transferFrom
 			.withArgs(sTokensBridge.address, user.address, sTokenId)
 			.returns()
-		await sTokensBridge.initialize(
-			sTokensManagerMock.address,
-			sTokensCertificateProxy.address
-		)
 		return [
 			sTokensBridge,
-			sTokensCertificateProxy,
+			sTokensCertificate,
 			sTokensManagerMock,
 			user,
 			property,

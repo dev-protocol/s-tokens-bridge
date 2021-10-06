@@ -13,7 +13,7 @@ import "hardhat/console.sol";
 
 contract STokensBridgeL2 is Initializable {
 	address public sTokensAddress;
-	address public sTokensCertificateProxyAddress;
+	address public sTokensCertificateAddress;
 	uint256 public certificateIdCounter;
 
 	mapping(address => mapping(uint256 => uint256)) public sTokensCertificateId;
@@ -32,11 +32,11 @@ contract STokensBridgeL2 is Initializable {
 
 	function initialize(
 		address _sTokensAddress,
-		address _sTokensCertificateProxyAddress
+		address _sTokensCertificateAddress
 	) external initializer {
 		sTokensAddress = _sTokensAddress;
-		sTokensCertificateProxyAddress = _sTokensCertificateProxyAddress;
-		ISTokensCertificate(sTokensCertificateProxyAddress).initialize();
+		sTokensCertificateAddress = _sTokensCertificateAddress;
+		ISTokensCertificate(sTokensCertificateAddress).initialize();
 	}
 
 	function depositSToken(uint256 _sTokenId) public {
@@ -52,7 +52,7 @@ contract STokensBridgeL2 is Initializable {
 		);
 
 		certificateIdCounter += 1;
-		ISTokensCertificate(sTokensCertificateProxyAddress).mint(
+		ISTokensCertificate(sTokensCertificateAddress).mint(
 			msg.sender,
 			certificateIdCounter
 		);
@@ -72,7 +72,7 @@ contract STokensBridgeL2 is Initializable {
 	function redeemSToken(uint256 _sTokenId) public {
 		uint256 certificateId = sTokensCertificateId[msg.sender][_sTokenId];
 		require(certificateId != 0, "You do not have Certificate");
-		ISTokensCertificate(sTokensCertificateProxyAddress).burn(certificateId);
+		ISTokensCertificate(sTokensCertificateAddress).burn(certificateId);
 		sTokensCertificateId[msg.sender][_sTokenId] = 0;
 
 		IERC721Upgradeable(sTokensAddress).transferFrom(

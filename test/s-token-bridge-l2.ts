@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
-import { ethers, waffle } from 'hardhat'
+import { ethers, waffle, upgrades } from 'hardhat'
 import { solidity, MockProvider } from 'ethereum-waffle'
 import { deploy, deployWith3Arg, attach } from './utils'
 import { STokensBridgeL2 } from '../typechain/STokensBridgeL2'
@@ -23,28 +23,22 @@ describe('STokensBridgeL2', () => {
 		[STokensBridgeL2, STokensCertificate, Contract, SignerWithAddress, Wallet]
 	> => {
 		const [, user] = await ethers.getSigners()
-		const sTokensCertificate = (await deploy(
-			'STokensCertificate'
-		)) as STokensCertificate
-		const data = ethers.utils.arrayify('0x')
-		const proxyAdmin = (await deploy('ProxyAdmin')) as ProxyAdmin
-		const proxy = (await deployWith3Arg(
-			'TransparentUpgradeableProxy',
-			sTokensCertificate.address,
-			proxyAdmin.address,
-			data
-		)) as TransparentUpgradeableProxy
-		const sTokensCertificateFactory = await ethers.getContractFactory(
-			'STokensCertificate'
-		)
-		const sTokensCertificateProxy = sTokensCertificateFactory.attach(
-			proxy.address
-		)!
-		const sTokensBridgeL2 = (await deploy('STokensBridgeL2')) as STokensBridgeL2
+		// Ceritificate
+		const STokensCertificate = await ethers.getContractFactory("STokensCertificate");
+		// Do not initialize because initialize will be implemented by BridgeL2 initialize()
+		const sTokensCertificate = await upgrades.deployProxy(STokensCertificate, { initializer: false }) as STokensCertificate;
+
+		// STokens
 		const sTokensManagerMock = await deployMockContract(
 			user,
 			mockSTokensManagerL2ABI
 		)
+
+		// BridgeL2
+		const STokensBridgeL2 = await ethers.getContractFactory("STokensBridgeL2");
+		// Here BridgeL2 is initialized (and Cert too)
+		const sTokensBridgeL2 = await upgrades.deployProxy(STokensBridgeL2, [sTokensManagerMock.address, sTokensCertificate.address]) as STokensBridgeL2;
+
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()
 		const sTokenId = 1
@@ -66,13 +60,9 @@ describe('STokensBridgeL2', () => {
 		await sTokensManagerMock.mock.transferFrom
 			.withArgs(sTokensBridgeL2.address, user.address, sTokenId)
 			.returns()
-		await sTokensBridgeL2.initialize(
-			sTokensManagerMock.address,
-			sTokensCertificateProxy.address
-		)
 		return [
 			sTokensBridgeL2,
-			sTokensCertificateProxy,
+			sTokensCertificate,
 			sTokensManagerMock,
 			user,
 			property,
