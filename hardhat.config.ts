@@ -4,7 +4,8 @@
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
+import '@openzeppelin/hardhat-upgrades'
 
 module.exports = {
-        solidity: "0.8.4",
-};
+	solidity: '0.8.4',
+}

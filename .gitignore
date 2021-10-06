@@ -71,3 +71,9 @@ types
 
 # use yarn
 package-lock.json
+
+cache/
+build/
+typechain/
+artifacts/
+.openzeppelin/
