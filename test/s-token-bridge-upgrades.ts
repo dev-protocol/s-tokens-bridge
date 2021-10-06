@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers,waffle, upgrades } from 'hardhat';
+import { ethers, waffle, upgrades } from 'hardhat';
 import { mockSTokensManagerABI } from './mockABI'
 
 const { deployMockContract } = waffle
