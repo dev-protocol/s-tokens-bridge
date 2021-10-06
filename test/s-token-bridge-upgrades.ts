@@ -4,7 +4,7 @@ import { mockSTokensManagerABI } from './mockABI'
 
 const { deployMockContract } = waffle
 
-describe("STokensCertificate", function () {
+describe("Upgrades Certificate and Bridge", function () {
     it('works', async () => {
 		const [, user] = await ethers.getSigners()
 
