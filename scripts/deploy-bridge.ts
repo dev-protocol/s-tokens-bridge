@@ -4,7 +4,8 @@ import { ethers } from 'hardhat'
 
 async function main() {
 	//!please check!!!!!!!!!
-	const sTokensManagerAddress = '0xD6D07f1c048bDF2B3d5d9B6c25eD1FC5348D0A70'
+	const sTokensManagerAddress = ''
+	const adminAddress = ''
 	//!!!!!!!!!!!!!!!!!!!!!!
 
 	// STokensCertificate
@@ -20,13 +21,6 @@ async function main() {
 	const sTokensBridge = await sTokensBridgeFactory.deploy()!
 	await sTokensBridge.deployed()
 
-	// STokensBridgeProxyAdmin
-	const sTokensBridgeProxyAdminFactory = await ethers.getContractFactory(
-		'STokensBridgeProxyAdmin'
-	)
-	const sTokensBridgeProxyAdmin = await sTokensBridgeProxyAdminFactory.deploy()!
-	await sTokensBridgeProxyAdmin.deployed()
-
 	// STokensBridgeProxy
 	const sTokensBridgeProxyFactory = await ethers.getContractFactory(
 		'STokensBridgeProxy'
@@ -37,7 +31,7 @@ async function main() {
 
 	const sTokensCertificateProxy = await sTokensBridgeProxyFactory.deploy(
 		sTokensCertificate.address,
-		sTokensBridgeProxyAdmin.address,
+		adminAddress,
 		data
 	)!
 	await sTokensCertificateProxy.deployed()
@@ -45,7 +39,7 @@ async function main() {
 	// STokensBridgeProxy
 	const sTokensBridgeProxy = await sTokensBridgeProxyFactory.deploy(
 		sTokensBridge.address,
-		sTokensBridgeProxyAdmin.address,
+		adminAddress,
 		data
 	)!
 	await sTokensBridgeProxy.deployed()
@@ -60,10 +54,6 @@ async function main() {
 	)
 	console.log('sTokensBridge deployed to:', sTokensBridge.address)
 	console.log('sTokensBridgeProxy deployed to:', sTokensBridgeProxy.address)
-	console.log(
-		'sTokensBridgeProxyAdmin deployed to:',
-		sTokensBridgeProxyAdmin.address
-	)
 }
 
 main()
