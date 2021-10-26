@@ -16,12 +16,12 @@ async function main() {
 	await sTokensCertificate.deployed()
 
 	// STokensBridge
-	const sTokensBridgeL2Factory = await ethers.getContractFactory(
-		'STokensBridgeL2'
+	const sTokensBridgeV2Factory = await ethers.getContractFactory(
+		'STokensBridgeV2'
 	)
 
-	const sTokensBridgeL2 = await sTokensBridgeL2Factory.deploy()!
-	await sTokensBridgeL2.deployed()
+	const sTokensBridgeV2 = await sTokensBridgeV2Factory.deploy()!
+	await sTokensBridgeV2.deployed()
 
 	// STokensBridgeProxy
 	const sTokensBridgeProxyFactory = await ethers.getContractFactory(
@@ -39,14 +39,14 @@ async function main() {
 	await sTokensCertificateProxy.deployed()
 
 	// STokensBridgeProxy
-	const sTokensBridgeL2Proxy = await sTokensBridgeProxyFactory.deploy(
-		sTokensBridgeL2.address,
+	const sTokensBridgeV2Proxy = await sTokensBridgeProxyFactory.deploy(
+		sTokensBridgeV2.address,
 		adminAddress,
 		data
 	)!
-	await sTokensBridgeL2Proxy.deployed()
+	await sTokensBridgeV2Proxy.deployed()
 
-	const proxy = sTokensBridgeL2Factory.attach(sTokensBridgeL2Proxy.address)!
+	const proxy = sTokensBridgeV2Factory.attach(sTokensBridgeV2Proxy.address)!
 	await proxy.initialize(sTokensManagerAddress, sTokensCertificateProxy.address)
 
 	console.log('sTokensCertificate deployed to:', sTokensCertificate.address)
@@ -54,8 +54,8 @@ async function main() {
 		'sTokensCertificateProxy deployed to:',
 		sTokensCertificateProxy.address
 	)
-	console.log('sTokensBridgeL2 deployed to:', sTokensBridgeL2.address)
-	console.log('sTokensBridgeProxyL2 deployed to:', sTokensBridgeL2Proxy.address)
+	console.log('sTokensBridgeV2 deployed to:', sTokensBridgeV2.address)
+	console.log('sTokensBridgeProxyV2 deployed to:', sTokensBridgeV2Proxy.address)
 }
 
 main()

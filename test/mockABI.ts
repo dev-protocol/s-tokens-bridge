@@ -63,7 +63,7 @@ export const mockSTokensManagerABI = [
 	},
 ]
 
-export const mockSTokensManagerL2ABI = [
+export const mockSTokensManagerV2ABI = [
 	{
 		inputs: [
 			{

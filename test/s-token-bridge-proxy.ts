@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { expect, use } from 'chai'
 import { ethers, waffle } from 'hardhat'
 import { solidity, MockProvider } from 'ethereum-waffle'
 import { deploy, deployWith3Arg } from './utils'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { STokensBridge } from '../typechain/STokensBridge'
-import { STokensBridgeTest } from '../typechain/STokensBridgeTest'
-import { STokensCertificate } from '../typechain/STokensCertificate'
-import { ProxyAdmin } from '../typechain/ProxyAdmin'
-import { TransparentUpgradeableProxy } from '../typechain/TransparentUpgradeableProxy'
+import {
+	STokensBridge,
+	STokensBridgeTest,
+	STokensCertificate,
+	ProxyAdmin,
+	TransparentUpgradeableProxy,
+} from '../typechain'
 import { Wallet } from 'ethers'
 import { mockSTokensManagerABI } from './mockABI'
 

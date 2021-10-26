@@ -3,11 +3,13 @@ import { ethers, waffle } from 'hardhat'
 import { constants } from 'ethers'
 import { solidity } from 'ethereum-waffle'
 import { deploy, deployWith3Arg } from './utils'
-import { STokensBridge } from '../typechain/STokensBridge'
-import { STokensBridgeProxy } from '../typechain/STokensBridgeProxy'
-import { STokensBridgeProxyAdmin } from '../typechain/STokensBridgeProxyAdmin'
-import { STokensCertificate } from '../typechain/STokensCertificate'
-import { ProxyAdmin } from '../typechain/ProxyAdmin'
+import {
+	STokensBridge,
+	STokensBridgeProxy,
+	STokensBridgeProxyAdmin,
+	STokensCertificate,
+	ProxyAdmin,
+} from '../typechain'
 import { mockSTokensManagerABI } from './mockABI'
 
 use(solidity)
