@@ -2,7 +2,7 @@ import { expect, use } from 'chai'
 import { ethers } from 'hardhat'
 import { solidity } from 'ethereum-waffle'
 import { deploy } from './utils'
-import { STokensCertificate } from '../typechain/STokensCertificate'
+import { STokensCertificate } from '../typechain'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
 use(solidity)

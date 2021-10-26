@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers, waffle, upgrades } from 'hardhat'
 import { solidity, MockProvider } from 'ethereum-waffle'
 import { attach } from './utils'
-import { STokensBridge } from '../typechain/STokensBridge'
-import { STokensCertificate } from '../typechain/STokensCertificate'
-import { STokensSubstitute } from '../typechain/STokensSubstitute'
+import {
+	STokensBridge,
+	STokensCertificate,
+	STokensSubstitute,
+} from '../typechain'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { Contract, Wallet } from 'ethers'
 import { mockSTokensManagerABI } from './mockABI'

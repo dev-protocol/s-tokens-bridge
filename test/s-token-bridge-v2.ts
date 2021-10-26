@@ -1,30 +1,33 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 /* eslint-disable new-cap */
 import { expect, use } from 'chai'
 import { ethers, waffle, upgrades } from 'hardhat'
 import { solidity, MockProvider } from 'ethereum-waffle'
 import { attach } from './utils'
-import { STokensBridgeL2 } from '../typechain/STokensBridgeL2'
-import { STokensCertificate } from '../typechain/STokensCertificate'
-import { STokensSubstitute } from '../typechain/STokensSubstitute'
+import {
+	STokensBridgeV2,
+	STokensCertificate,
+	STokensSubstitute,
+} from '../typechain'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { Contract, Wallet } from 'ethers'
-import { mockSTokensManagerL2ABI } from './mockABI'
+import { mockSTokensManagerV2ABI } from './mockABI'
 
 use(solidity)
 
 const { deployMockContract } = waffle
 
-describe('STokensBridgeL2', () => {
+describe('STokensBridgeV2', () => {
 	const init = async (): Promise<
-		[STokensBridgeL2, STokensCertificate, Contract, SignerWithAddress, Wallet]
+		[STokensBridgeV2, STokensCertificate, Contract, SignerWithAddress, Wallet]
 	> => {
 		const [, user] = await ethers.getSigners()
 		// Ceritificate
 		const STokensCertificate = await ethers.getContractFactory(
 			'STokensCertificate'
 		)
-		// Do not initialize because initialize will be implemented by BridgeL2 initialize()
+		// Do not initialize because initialize will be implemented by BridgeV2 initialize()
 		const sTokensCertificate = (await upgrades.deployProxy(STokensCertificate, {
 			initializer: false,
 		})) as STokensCertificate
@@ -32,16 +35,16 @@ describe('STokensBridgeL2', () => {
 		// STokens
 		const sTokensManagerMock = await deployMockContract(
 			user,
-			mockSTokensManagerL2ABI
+			mockSTokensManagerV2ABI
 		)
 
-		// BridgeL2
-		const STokensBridgeL2 = await ethers.getContractFactory('STokensBridgeL2')
-		// Here BridgeL2 is initialized (and Cert too)
-		const sTokensBridgeL2 = (await upgrades.deployProxy(STokensBridgeL2, [
+		// BridgeV2
+		const STokensBridgeV2 = await ethers.getContractFactory('STokensBridgeV2')
+		// Here BridgeV2 is initialized (and Cert too)
+		const sTokensBridgeV2 = (await upgrades.deployProxy(STokensBridgeV2, [
 			sTokensManagerMock.address,
 			sTokensCertificate.address,
-		])) as STokensBridgeL2
+		])) as STokensBridgeV2
 
 		const provider = new MockProvider()
 		const property = provider.createEmptyWallet()
@@ -58,14 +61,14 @@ describe('STokensBridgeL2', () => {
 			.withArgs(sTokenId)
 			.returns(positions)
 		await sTokensManagerMock.mock.transferFrom
-			.withArgs(user.address, sTokensBridgeL2.address, sTokenId)
+			.withArgs(user.address, sTokensBridgeV2.address, sTokenId)
 			.returns()
 		// User can get back sTokensId=1 from Bridge
 		await sTokensManagerMock.mock.transferFrom
-			.withArgs(sTokensBridgeL2.address, user.address, sTokenId)
+			.withArgs(sTokensBridgeV2.address, user.address, sTokenId)
 			.returns()
 		return [
-			sTokensBridgeL2,
+			sTokensBridgeV2,
 			sTokensCertificate,
 			sTokensManagerMock,
 			user,
@@ -75,10 +78,10 @@ describe('STokensBridgeL2', () => {
 
 	describe('initialize', () => {
 		it('The initialize function can only be executed once.', async () => {
-			const [sTokensBridgeL2, sTokensCertificateProxy, sTokensManagerMock] =
+			const [sTokensBridgeV2, sTokensCertificateProxy, sTokensManagerMock] =
 				await init()
 			await expect(
-				sTokensBridgeL2.initialize(
+				sTokensBridgeV2.initialize(
 					sTokensManagerMock.address,
 					sTokensCertificateProxy.address
 				)
@@ -104,14 +107,14 @@ describe('STokensBridgeL2', () => {
 	describe('depositSToken', () => {
 		describe('success', () => {
 			it('deposit SToken', async () => {
-				const [sTokensBridgeL2, sTokensCertificateProxy, , user, property] =
+				const [sTokensBridgeV2, sTokensCertificateProxy, , user, property] =
 					await init()
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
 				// Check Deposit event
-				const filter = sTokensBridgeL2.filters.Deposit()
-				const events = await sTokensBridgeL2.queryFilter(filter)
+				const filter = sTokensBridgeV2.filters.Deposit()
+				const events = await sTokensBridgeV2.queryFilter(filter)
 				const from = events[0].args._from
 				const eventsSTokenId = events[0].args._sTokenId
 				const certificateId = events[0].args._certificateId
@@ -123,7 +126,7 @@ describe('STokensBridgeL2', () => {
 				expect(certOwner).to.equal(user.address)
 				// Check user got Cert20
 				const sTokensSubstituteAddress =
-					await sTokensBridgeL2.sTokensSubstituteAddress(property.address)
+					await sTokensBridgeV2.sTokensSubstituteAddress(property.address)
 				const sTokensSubstitute = (await attach(
 					'STokensSubstitute',
 					sTokensSubstituteAddress
@@ -135,13 +138,13 @@ describe('STokensBridgeL2', () => {
 		})
 		describe('fail', () => {
 			it('other user cannot deposit', async () => {
-				const [sTokensBridgeL2, , sTokensManagerMock] = await init()
+				const [sTokensBridgeV2, , sTokensManagerMock] = await init()
 				const [owner] = await ethers.getSigners()
 				await sTokensManagerMock.mock.transferFrom
-					.withArgs(owner.address, sTokensBridgeL2.address, 1)
+					.withArgs(owner.address, sTokensBridgeV2.address, 1)
 					.revertsWithReason('ERC721: transfer of token that is not own')
 				await expect(
-					sTokensBridgeL2.depositSToken(1, { gasLimit: 1200000 })
+					sTokensBridgeV2.depositSToken(1, { gasLimit: 1200000 })
 				).to.be.revertedWith('ERC721: transfer of token that is not own')
 			})
 		})
@@ -150,24 +153,24 @@ describe('STokensBridgeL2', () => {
 	describe('redeemSToken', () => {
 		describe('success', () => {
 			it('redeem SToken', async () => {
-				const [sTokensBridgeL2, sTokensCertificateProxy, , user, property] =
+				const [sTokensBridgeV2, sTokensCertificateProxy, , user, property] =
 					await init()
 
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
 				const sTokensSubstituteAddress =
-					await sTokensBridgeL2.sTokensSubstituteAddress(property.address)
+					await sTokensBridgeV2.sTokensSubstituteAddress(property.address)
 				const sTokensSubstitute = (await attach(
 					'STokensSubstitute',
 					sTokensSubstituteAddress
 				)) as STokensSubstitute
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.redeemSToken(1, { gasLimit: 1200000 })
 				// Check Redeem event
-				const filter = sTokensBridgeL2.filters.Redeem()
-				const events = await sTokensBridgeL2.queryFilter(filter)
+				const filter = sTokensBridgeV2.filters.Redeem()
+				const events = await sTokensBridgeV2.queryFilter(filter)
 				const from = events[0].args._from
 				const eventsSTokenId = events[0].args._sTokenId
 				const certificateId = events[0].args._certificateId
@@ -183,25 +186,25 @@ describe('STokensBridgeL2', () => {
 				expect(amount).to.equal(0)
 			})
 			it('redeem SToken then deposit and redeem again', async () => {
-				const [sTokensBridgeL2, sTokensCertificateProxy, , user] = await init()
-				await sTokensBridgeL2
+				const [sTokensBridgeV2, sTokensCertificateProxy, , user] = await init()
+				await sTokensBridgeV2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.redeemSToken(1, { gasLimit: 1200000 })
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
 				// Check certId of 2nd Deposit is correct
-				const filter = sTokensBridgeL2.filters.Deposit()
-				const events = await sTokensBridgeL2.queryFilter(filter)
+				const filter = sTokensBridgeV2.filters.Deposit()
+				const events = await sTokensBridgeV2.queryFilter(filter)
 				const certificateId = events[1].args._certificateId
 				expect(certificateId).to.equal(2)
 				const certOwner = await sTokensCertificateProxy.ownerOf(certificateId)
 				expect(certOwner).to.equal(user.address)
 				// Check certId=2 is correctly burned
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.redeemSToken(1, { gasLimit: 1200000 })
 				await expect(sTokensCertificateProxy.ownerOf(2)).to.be.revertedWith(
@@ -212,29 +215,29 @@ describe('STokensBridgeL2', () => {
 
 		describe('fail', () => {
 			it('other user cannot redeem', async () => {
-				const [sTokensBridgeL2, , , user] = await init()
-				await sTokensBridgeL2
+				const [sTokensBridgeV2, , , user] = await init()
+				await sTokensBridgeV2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
 				await expect(
-					sTokensBridgeL2.redeemSToken(1, { gasLimit: 1200000 })
+					sTokensBridgeV2.redeemSToken(1, { gasLimit: 1200000 })
 				).to.be.revertedWith('You do not have Certificate')
 			})
 			it('when user does not have sufficient Cert20 tokens', async () => {
-				const [sTokensBridgeL2, , , user, property] = await init()
+				const [sTokensBridgeV2, , , user, property] = await init()
 				const [owner] = await ethers.getSigners()
-				await sTokensBridgeL2
+				await sTokensBridgeV2
 					.connect(user)
 					.depositSToken(1, { gasLimit: 2400000 })
 				const sTokensSubstituteAddress =
-					await sTokensBridgeL2.sTokensSubstituteAddress(property.address)
+					await sTokensBridgeV2.sTokensSubstituteAddress(property.address)
 				const sTokensSubstitute = (await attach(
 					'STokensSubstitute',
 					sTokensSubstituteAddress
 				)) as STokensSubstitute
 				await sTokensSubstitute.connect(user).transfer(owner.address, 1)
 				await expect(
-					sTokensBridgeL2.connect(user).redeemSToken(1, { gasLimit: 1200000 })
+					sTokensBridgeV2.connect(user).redeemSToken(1, { gasLimit: 1200000 })
 				).to.be.revertedWith('ERC20: burn amount exceeds balance')
 			})
 		})

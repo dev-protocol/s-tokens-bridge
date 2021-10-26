@@ -3,13 +3,13 @@ pragma solidity =0.8.4;
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ISTokensManager} from "@devprotocol/protocol-l2/contracts/interface/ISTokensManager.sol";
+import {ISTokensManager} from "@devprotocol/protocol-v2/contracts/interface/ISTokensManager.sol";
 import {STokensSubstitute} from "./STokensSubstitute.sol";
 import {ISTokensSubstitute} from "./interface/ISTokensSubstitute.sol";
 import {ISTokensCertificate} from "./interface/ISTokensCertificate.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract STokensBridgeL2 is Initializable {
+contract STokensBridgeV2 is Initializable {
 	address public sTokensAddress;
 	address public sTokensCertificateAddress;
 	uint256 public certificateIdCounter;
