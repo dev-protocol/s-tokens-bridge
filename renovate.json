@@ -1,4 +1,21 @@
 {
 	"extends": ["config:base"],
-	"automerge": true
+	"automerge": true,
+	"packageRules": [
+		{
+			"packageNames": ["@devprotocol/i-s-tokens"],
+			"allowedVersions": "1.5.1"
+		},
+		{
+			"packageNames": ["@devprotocol/protocol-v2"],
+			"allowedVersions": "0.5.0"
+		},
+		{
+			"packageNames": [
+				"@openzeppelin/contracts",
+				"@openzeppelin/contracts-upgradeable"
+			],
+			"allowedVersions": "4.4.0"
+		}
+	]
 }
